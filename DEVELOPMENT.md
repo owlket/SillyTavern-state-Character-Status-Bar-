@@ -113,7 +113,7 @@ Then hard-refresh the browser tab (**Ctrl+F5**) — SillyTavern caches extension
 | — | `ac9949a` | English README |
 | 1.3.0 | `545912a` | Compact view mode + Edit/Done mode toggle |
 | 1.4.0 | `0ad0354` | Edit-mode opaque bg + shadow; mobile: touch drag, vertical edge toggle button |
-| 1.4.0 | `00cf85d` | Live panel opacity + glow/shadow sliders in edit mode (CSS vars `--stateext-*`) |
+| 1.4.0 | `fe15455` | Live panel opacity + glow/shadow sliders in edit mode (CSS vars `--stateext-*`) |
 
 ## Known limitations / future ideas
 
