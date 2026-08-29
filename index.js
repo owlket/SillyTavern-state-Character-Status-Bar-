@@ -396,25 +396,42 @@ function stateExtResetSettings() {
         panel.style.display = (panel.style.display === 'none' ? 'block' : 'none');
     });
 
-    // 悬浮窗拖动功能
+    // 悬浮窗拖动功能（鼠标 + 触屏）/ Draggable panel (mouse + touch)
     let dragging = false, dragOffsetX = 0, dragOffsetY = 0;
     const headerEl = panel.querySelector('.header');
-    headerEl.addEventListener('mousedown', (e) => {
+    function startDrag(clientX, clientY) {
         dragging = true;
         // 计算点击处与面板左上角的偏移
-        dragOffsetX = e.clientX - panel.offsetLeft;
-        dragOffsetY = e.clientY - panel.offsetTop;
+        dragOffsetX = clientX - panel.offsetLeft;
+        dragOffsetY = clientY - panel.offsetTop;
+    }
+    function moveDrag(clientX, clientY) {
+        if (!dragging) return;
+        panel.style.left = (clientX - dragOffsetX) + 'px';
+        panel.style.top = (clientY - dragOffsetY) + 'px';
+        panel.style.bottom = 'auto';
+        panel.style.right = 'auto';
+    }
+    function endDrag() { dragging = false; }
+    headerEl.addEventListener('mousedown', (e) => {
+        startDrag(e.clientX, e.clientY);
         e.preventDefault();
     });
-    document.addEventListener('mousemove', (e) => {
-        if (dragging) {
-            panel.style.left = (e.clientX - dragOffsetX) + 'px';
-            panel.style.top = (e.clientY - dragOffsetY) + 'px';
-            panel.style.bottom = 'auto';
-            panel.style.right = 'auto';
-        }
-    });
-    document.addEventListener('mouseup', () => { dragging = false; });
+    document.addEventListener('mousemove', (e) => moveDrag(e.clientX, e.clientY));
+    document.addEventListener('mouseup', endDrag);
+    // 触屏拖动支持（移动端）/ Touch drag support (mobile)
+    headerEl.addEventListener('touchstart', (e) => {
+        const t = e.touches[0];
+        startDrag(t.clientX, t.clientY);
+    }, { passive: true });
+    document.addEventListener('touchmove', (e) => {
+        if (!dragging) return;
+        e.preventDefault();  // 拖动时阻止页面滚动 / prevent page scroll while dragging
+        const t = e.touches[0];
+        moveDrag(t.clientX, t.clientY);
+    }, { passive: false });
+    document.addEventListener('touchend', endDrag);
+    document.addEventListener('touchcancel', endDrag);
 
     // “添加”按钮：批量添加状态项
     panel.querySelector('#stateExtAddBtn').onclick = () => {
