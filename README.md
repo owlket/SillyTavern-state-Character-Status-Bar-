@@ -1,120 +1,141 @@
-# SillyTavern-state 扩展
+# SillyTavern-state · Character Status Bar
 
-> **English** · A SillyTavern extension that adds a draggable floating status bar for tracking character states (HP, MP, gold, …). Before each generation it injects the current states as a system note, so the AI replies with only the changed values as `<name>value</name>` XML tags; the extension parses them back into the status bar and hides the tags from the chat. States are stored per chat, and one-click buttons convert them to/from World Info entries.
->
-> The UI and the injected prompt are bilingual (中文 / English) and follow the SillyTavern interface language by default; a fixed language can be picked in the extension settings.
->
-> 中文说明见下 / Chinese documentation below.
+> **This is the exact same extension as [ThirteenthMonth/SillyTavern-state](https://github.com/ThirteenthMonth/SillyTavern-state) — 100% feature-identical, nothing removed, nothing changed in how it works. The difference: English works now.** The entire UI, every button, alert and setting — and even the prompt injected into your chats — is fully bilingual (English / 中文). All credit for the original extension goes to **ThirteenthMonth**.
 
-**SillyTavern-state** 扩展为 SillyTavern 添加了悬浮状态栏界面，用于管理角色的各类状态（如生命值、法力值、金币等）。每次用户发送消息前，扩展都会将当前状态作为系统提示插入，对 AI 的回复进行引导，使其参考这些状态并 **仅输出发生变化的状态项**（以 XML 标签格式呈现）。当 AI 回复包含状态标签时，扩展会自动解析并更新状态栏，同时从聊天消息中移除这些 XML 标签，仅展示纯粹的剧情内容。扩展界面和注入提示均支持中文与英文（默认跟随 SillyTavern 界面语言，也可在扩展设置中固定选择）。
+A SillyTavern extension that adds a draggable floating status bar for tracking character states (HP, MP, gold, …). Before each generation it injects the current states as a system note, so the AI replies with only the changed values as `<name>value</name>` XML tags; the extension parses them back into the status bar and hides the tags from the chat. States are stored per chat, and one-click buttons convert them to/from World Info entries.
 
-## 功能特色
+## What's new in this fork (v1.2.0)
 
-- **悬浮状态栏 UI**：界面包含一个可拖动的悬浮窗口，通过悬浮按钮打开/关闭。用户可以方便地查看和管理当前角色的状态值。
-- **批量管理状态项**：支持手动批量添加状态项（每行输入“名称 值”），以及对现有状态的编辑和删除。修改后的状态会实时保存并在会话间独立存在。
-- **提示注入与状态同步**：在每轮对话生成前，扩展自动将当前状态注入提示（System Prompt），引导 AI 模型参考并更新这些状态。AI 回复只需以 `<状态名>新值</状态名>` 的 XML 格式给出变化项。
-- **自动解析更新**：扩展监听 AI 的回复内容，自动解析其中的 XML 状态标签，更新状态栏显示的对应数值，并从消息中剥离这些标签，不影响剧情阅读。
-- **世界信息集成**：提供“一键生成世界书条目格式”和“从世界书内容提取状态”功能，方便将状态数据与 SillyTavern 的世界信息 (World Info) 系统结合。
-- **多对话隔离**：状态数据绑定到每个聊天会话的元数据 `chatMetadata`，不同聊天/角色的状态栏互相独立:contentReference[oaicite:2]{index=2}。切换聊天时，扩展会自动加载该会话对应的状态列表。
+- **Full English UI** — floating panel, buttons, dialogs, settings drawer, alerts.
+- **English prompt injection** — the "Current state" system note and its instructions are sent in English too (previously Chinese only), so models that struggle with Chinese instructions now behave properly.
+- **Language setting** — `Auto` follows the SillyTavern interface language (falling back to your browser language), or pin it to `中文` / `English` in the extension settings.
+- Chinese remains fully supported — nothing was taken away.
 
-## 安装方法
+**SillyTavern-state** adds a floating status bar to SillyTavern for managing character states (Health, Mana, Gold, and so on). Before every message you send, the extension injects the current states as a system note, steering the AI to reference them and **output only the states that changed**, as XML tags. When an AI reply contains state tags, the extension automatically parses them, updates the status bar, and strips the tags from the chat message — leaving only clean story text.
 
-**前置要求**：请确认使用 SillyTavern 客户端版本 **1.13.2 (staging 分支, commit 0b7f9451f)** 或以上版本，以确保兼容性。
+## Features
 
-1. **下载扩展**：获取本扩展的完整代码仓库（例如通过 Git 或直接下载 ZIP 压缩包）。
-2. **放置文件**：将仓库文件夹命名为 `SillyTavern-state`（包含其中的 `manifest.json` 等文件），放入 SillyTavern 的扩展目录中。对于本地用户安装，可以放入 `data/你的用户名/extensions/` 目录:contentReference[oaicite:3]{index=3}。亦可将其放入服务器公共扩展目录 `public/extensions/third-party/` 下，以对所有用户启用。
-3. **启用扩展**：启动或刷新 SillyTavern，在界面顶部点击扩展图标（“扩展管理”菜单）。在扩展列表中找到“**角色状态栏**”并启用它。如果未看到该扩展，点击“扫描/刷新扩展”或确认文件夹放置是否正确。
-4. **（可选）联网安装**：如果 SillyTavern 支持在线安装扩展，可直接提供本扩展仓库的 Git 地址进行安装（详见 SillyTavern 文档）。
+- **Floating status bar UI**: a draggable floating window, toggled via a floating button. View and manage the current character's states at any time.
+- **Batch state management**: add multiple states at once (one `Name Value` pair per line), plus edit and delete for existing states. Changes are saved instantly and kept separate per chat.
+- **Prompt injection & state sync**: before each generation, the extension injects the current states into the prompt as a system note, guiding the model to update them. The AI only needs to reply with the changed items as `<Name>NewValue</Name>` XML tags.
+- **Automatic parsing**: the extension watches AI replies, parses the XML state tags, updates the matching values in the status bar, and strips the tags from the message so they never disturb your reading.
+- **World Info integration**: one-click **Export to World Info** (copies the states as a World Info entry) and **Import from World Info** (reads states back from clipboard text), making it easy to move state data between the extension and SillyTavern's World Info system.
+- **Per-chat isolation**: state data is bound to each chat session's metadata (`chatMetadata`), so different chats/characters have fully independent status bars. Switching chats automatically loads that session's state list.
+- **Bilingual UI & prompts**: English and 中文 throughout — the UI, the injected system note, and all alerts. Follows the SillyTavern UI language by default; a fixed language can be picked in the extension settings.
 
-安装完成后，SillyTavern 客户端将自动加载扩展内容。如未自动加载，请尝试重新启动客户端或刷新页面。
+## Installation
 
-## 使用说明
+**Requirement**: SillyTavern client version **1.13.2** or newer.
 
-**1. 打开状态栏窗口**：扩展启用后，页面右下角会出现一个悬浮按钮“`状态栏`”。点击该按钮即可打开或隐藏状态栏悬浮窗口。
+**Option 1 — install from URL (recommended):**
+1. Open SillyTavern → **Extensions** (puzzle icon) → **Install Extension**.
+2. Paste this repo's Git URL: `https://github.com/owlket/SillyTavern-state-Character-Status-Bar-`
+3. Click install, then enable **角色状态栏 · Character Status Bar** in the extension list.
 
-**2. 查看和管理状态项**：打开状态栏窗口后，您将看到当前会话的状态列表。每个状态项以“名称: 值”的形式显示。  
-- 要**添加状态**：在窗口底部的多行输入框中，按每行“名称 值”的格式输入一项或多项状态，然后点击“**添加**”按钮。扩展将批量解析每一行，新增相应的状态项；如果名称与现有项重复，则会更新其值。  
-- 要**编辑状态**：点击某个状态项右侧的“**编辑**”按钮，该项会切换为可修改状态。您可以直接修改名称或数值，完成后点击“**保存**”以应用更改，或点击“**取消**”放弃修改。若修改名称，请确保不与其他现有名称重复。  
-- 要**删除状态**：点击状态项右侧的“**删除**”按钮，即可移除该状态项。
+**Option 2 — manual install:**
+1. Download the full repo (via Git or the ZIP archive).
+2. Name the folder `SillyTavern-state` (it must contain `manifest.json`) and place it in SillyTavern's extensions directory: `data/<your-username>/extensions/` for a single user, or the server's shared `public/scripts/extensions/third-party/` directory to enable it for all users.
+3. Start or refresh SillyTavern, open the **Extensions** panel, find **角色状态栏 · Character Status Bar** and enable it. If it doesn't appear, rescan/refresh the extension list and double-check the folder placement.
 
-所有添加、编辑、删除操作即时生效，并自动保存到当前聊天会话的元数据中。切换到其他聊天时，这些状态不会互相干扰，每个聊天都有独立的状态配置。
+After installation the client loads the extension automatically. If it doesn't, restart SillyTavern or refresh the page.
 
-**3. 对话提示注入**：当您发送每条用户消息时（包括继续剧情、提问等），扩展会在后台自动将当前的状态列表插入到提示中，作为一个系统提示。这一提示内容包含“当前状态”的列表以及引导 AI 输出变化状态的说明。例如：
+## Usage
 
-当前状态：
-生命值 10/10
-法力 5/5
-金币 100
-请参考以上状态。在回答时，如有任何状态数值因剧情发生变化，请仅输出发生变化的状态项，并使用 XML 标签格式表示，例如：<生命值>8/10</生命值>。如果没有状态变化，请不要输出任何状态标签。
+**1. Open the status bar window**: once the extension is enabled, a floating **`States`** button appears in the bottom-right corner of the page. Click it to open or hide the floating **Character Status** window.
 
+**2. View and manage states**: the window shows the current session's state list, each item displayed as `Name: Value`.
+- **Add states**: in the multi-line text box at the bottom, enter one or more states in `Name Value` format (one per line), then click **Add**. Each line is parsed in batch; if a name matches an existing item, its value is updated instead.
+- **Edit a state**: click **Edit** next to an item to make it editable. Change the name or value, then click **Save** to apply or **Cancel** to discard. If you rename an item, make sure it doesn't clash with another existing name.
+- **Delete a state**: click **Delete** next to an item to remove it.
 
-该系统提示对用户不可见，但会影响之后 AI 的回复，使其了解并参考当前状态设定。在提示的引导下，**AI 将仅在相关状态改变时输出对应的 `<状态名>新值</状态名>` 标签**，而不会直接在叙述中给出全部状态或无关的信息。这样可以确保状态变更被明确捕获，同时不会干扰剧情文本。
+All add/edit/delete operations take effect immediately and are saved automatically into the current chat's metadata. States never leak between chats — every chat has its own independent state list.
 
-**4. AI 回复解析**：当 AI 生成回复后，扩展会自动检查回复中的内容： 
-- 如果**包含状态标签**（例如 `<生命值>8/10</生命值>`），扩展将提取其中的名称和新值，自动更新状态栏中对应的状态项（例如将“生命值”更新为 8/10）。对于回复中出现的新状态项（之前列表中不存在的名称），扩展也会添加到状态栏中。
-- 扩展随后**移除消息中的这些 XML 标签**，只保留正常的对话文本内容。例如，原本 AI 回复消息可能是：  
-  `你受到了伤害，感觉有点虚弱。<生命值>8/10</生命值>`  
-  扩展处理后，在聊天窗口中您将只看到：  
-  `你受到了伤害，感觉有点虚弱。`  
-  （同时状态栏的“生命值”已更新为 8/10）
+**3. Prompt injection**: every time you send a user message (continuing the story, asking a question, etc.), the extension silently inserts the current state list into the prompt as a system note. The note contains the "Current state" list plus instructions guiding the AI to output changed states. For example:
 
-这一过程是自动完成的，无需人工干预。状态标签不会干扰您和 AI 的正常对话阅读，但扩展仍会在幕后精确跟踪状态的变化。
+```
+Current state:
+Health 10/10
+Mana 5/5
+Gold 100
+Refer to the state values above. When answering, if any state value changes as a result of the story, output only the changed state items using XML tag format, e.g.: <Health>8/10</Health>. If nothing has changed, do not output any state tags.
+```
 
-**5. 生成世界书条目**：点击状态栏窗口中的“**生成世界书条目**”按钮，扩展会将当前所有状态项汇总为世界信息（World Info）条目的内容格式，并复制到剪贴板。您可以前往 SillyTavern 的**世界信息**面板，新增一个条目，将剪贴板中的内容粘贴进去。建议为该条目设置适当的**触发关键词**：例如可以使用角色名或 “状态” 之类的关键词，使其在相关场景时触发。您也可以将此条目绑定到相应的角色，使其在与该角色的所有对话中自动提供状态信息。
+This system note is invisible to you, but it shapes the AI's next reply so it knows the current states. Guided by the note, **the AI outputs a `<Name>NewValue</Name>` tag only when a state actually changes**, instead of dumping the full state list or unrelated info into the narrative. State changes are captured explicitly without polluting the story text.
 
-- 生成的世界书条目内容示例如下：  
+**4. Reply parsing**: after the AI generates a reply, the extension checks its content:
+- If it **contains state tags** (e.g. `<Health>8/10</Health>`), the extension extracts the name and new value and updates the matching item in the status bar (e.g. Health → 8/10). New state names that don't exist in the list yet are added automatically.
+- The extension then **strips these XML tags from the message**, keeping only the normal dialogue text. For example, the raw AI reply might be:
+  `You take a hit and feel a little weak. <Health>8/10</Health>`
+  After processing, all you see in the chat window is:
+  `You take a hit and feel a little weak.`
+  (while the status bar's Health has been updated to 8/10)
 
-角色状态：
-生命值 10/10
-法力 5/5
-金币 100
+This all happens automatically, no manual intervention needed. The tags never disturb your reading, but the extension keeps precise track of every change behind the scenes.
 
-您可以根据需要增删状态项后，再将其用于世界信息。
+**5. Export to World Info**: click **Export to World Info** in the status bar window and the extension formats all current states as World Info entry content and copies it to the clipboard. Go to SillyTavern's **World Info** panel, create a new entry, and paste it in. It's a good idea to set sensible **trigger keywords** for the entry — e.g. the character's name or a keyword like "state" — so it fires in relevant scenes. You can also bind the entry to a character so the state info is provided in every chat with them.
 
-**6. 从世界书提取**：如果您在某个世界信息条目中维护了状态列表（格式类似上述输出，每行一个状态），可以复制该条目的文本内容，然后点击状态栏窗口中的“**从世界书提取**”按钮。扩展将尝试从剪贴板读取文本，并批量导入状态项。已有的同名状态会被更新，新的状态会添加到列表中。导入成功后，您会看到状态栏实时更新，以匹配世界书中的数据。
+- Example of the generated entry content:
 
-> **注意**：从世界书提取需要浏览器给予剪贴板读取权限。如果点击按钮后没有反应，请手动将世界书内容粘贴到“添加”输入框，然后点击“添加”实现同样的效果。
+```
+Character state:
+Health 10/10
+Mana 5/5
+Gold 100
+```
 
-**7. 扩展设置**：在 SillyTavern 顶部菜单打开“扩展管理”，找到“角色状态栏”条目即可调整扩展行为：
+Feel free to add or remove items before using it in World Info.
 
-- **启用角色状态栏**：总开关，关闭后悬浮按钮隐藏，同时停止自动提示与消息解析。
-- **发送前注入系统提示**：控制是否将“当前状态”作为系统提示插入到最后一条用户消息之前。
-- **隐藏消息中的状态标签**：关闭后，AI 回复中的 `<状态>` 标签仍会用于更新数据，但不会从聊天记录中剥离。
-- **附加提示说明**：可追加自定义文字到系统提示末尾，用于补充规则或说明。
+**6. Import from World Info**: if you maintain a state list inside a World Info entry (same format as above, one state per line), copy that entry's text, then click **Import from World Info** in the status bar window. The extension reads the clipboard and batch-imports the states: existing names get updated, new names get added. The status bar updates in real time to match the World Info data.
 
-## 本地调试与热重载
+> **Note**: importing requires clipboard-read permission from the browser. If clicking the button does nothing, paste the World Info content into the **Add** text box manually and click **Add** — same result.
 
-本扩展支持**热重载**。当您在开发过程中修改扩展文件并保存后，SillyTavern 会自动检测到变化并重新加载扩展内容，无需手动刷新页面。扩展脚本已处理了重复加载可能引发的事件叠加和 UI 冗余问题，确保每次重载都是全新的单一实例。
+**7. Extension settings**: open the Extensions panel from SillyTavern's top menu and find **Character Status Bar** to adjust its behavior:
 
-建议在开发调试时将扩展文件夹放置于 SillyTavern 的 `public/extensions/third-party/` 目录下（全局扩展），启动 SillyTavern 后直接对该目录中的文件进行编辑。保存时，前端会自动应用更新。若修改后扩展未及时生效，可尝试在浏览器控制台检查错误，或在 SillyTavern 扩展管理界面手动禁用再启用本扩展。
+- **Enable Character Status Bar**: master switch. Turning it off hides the floating button and stops prompt injection and message parsing.
+- **Language**: language for the extension UI and the injected prompt. `Auto` follows the SillyTavern UI language; you can also pin it to 中文 or English.
+- **Inject system prompt before sending**: controls whether the "Current state" note is inserted before the last user message.
+- **Hide state tags in messages**: when off, `<state>` tags in AI replies are still parsed for updates but are not stripped from the chat log.
+- **Extra instruction**: custom text appended to the end of the system prompt — useful for extra rules or notes.
+- **Restore defaults**: resets all settings.
 
-## 注意事项
+## Local development & hot reload
 
-- **模型配合**：为了扩展正常工作，所使用的 AI 模型需要遵循给定的系统提示格式。大多数模型在明确指示下会输出所需的 `<标签>` 格式，但并不保证百分百可靠。如果模型频繁未按格式提供状态变化，您可能需要在角色设定或对话中加强这方面的指示。确保状态名称与模型回复中的名称完全一致（包括大小写或中英文符号），否则扩展可能无法识别匹配。
-- **输出内容**：AI 回复中应当**只在有状态变化时**输出对应的标签，而且只输出变化的那一项。例如，如果“生命值”减少了，模型应输出 `<生命值>新值</生命值>`，而不需要输出未变化的“法力”或“金币”。扩展的提示已经强调了这一点，尽量避免模型列出无关的状态信息。
-- **标签格式**：状态标签采用 XML 风格的成对标记，例如 `<生命值>8/10</生命值>`。请勿在标签内加入多余描述或空格，尽量使其简洁只包含新的数值。扩展采用正则匹配 `<...>...</...>` 来提取内容，理论上支持标签内包含空格或单位等（例如 `<体力>5 点</体力>` 也会被识别）。但建议保持格式一致，名称和数值间不需要额外说明文字，以免干扰模型判断。
-- **状态同步限制**：扩展不会影响 AI 对话以外的数据存储。例如，状态数据仅保存在当前聊天的元数据中，并不会自动写入角色卡或全局设定。如果您需要在新建聊天时沿用以前的状态，可以手动通过世界信息导入，或在角色卡的描述/扩展字段中记录初始状态（目前本扩展未直接集成角色卡字段写入）。
-- **重复信息**：如果您同时使用了**世界信息条目**来插入状态，以及本扩展的系统提示注入，两者可能都会将状态列表提供给模型。这可能导致提示里出现重复的状态信息，占用额外的上下文长度。通常情况下，**建议您选择一种方式**即可：要么完全依赖扩展提供动态状态（更适合实时变化场景），要么在世界信息中维护静态/初始状态（配合 AI 记忆长久背景）。您也可以折中：利用世界信息存储初始状态，然后使用“从世界书提取”将其导入扩展，后续过程由扩展接管。
-- **扩展权限**：本扩展仅运行于前端，不需要任何后端插件支持。它不会与 AI 模型或 API 直接交互，仅通过 SillyTavern 提供的事件和接口实现功能，所以相对安全。请放心在离线/本地环境下使用。
+This extension supports **hot reload**. When you edit and save an extension file during development, SillyTavern detects the change and reloads the extension automatically — no manual page refresh needed. The extension script already guards against the duplicate event bindings and UI leftovers that repeated loading could cause, so every reload is a fresh single instance.
 
-## 安装与使用示例
+For development, place the extension folder under SillyTavern's `public/scripts/extensions/third-party/` directory (a global extension), start SillyTavern, and edit the files in place. Saving applies the update in the front end. If a change doesn't take effect, check the browser console for errors, or manually disable and re-enable the extension in the Extensions panel.
 
-以下是使用本扩展的一个简单示例场景：
+## Notes & caveats
 
-1. 用户在角色卡中未设定任何状态，由自己决定在扩展中维护。启用扩展后，点击“状态栏”按钮，添加三项状态：  
+- **Model cooperation**: the extension relies on the AI model following the system-note format. Most models will output the required `<tags>` when explicitly instructed, but it's not 100% guaranteed. If the model frequently fails to emit state changes, reinforce the instruction in the character definition or chat. Make sure state names match the model's replies exactly (including capitalization), or the extension won't recognize them.
+- **Output discipline**: the AI should output a tag **only when a state changes**, and only the changed item. For example, if Health drops, the model should output `<Health>new value</Health>` — not the unchanged Mana or Gold. The injected note already stresses this to keep replies clean.
+- **Tag format**: state tags are XML-style pairs, e.g. `<Health>8/10</Health>`. Avoid extra descriptions or whitespace inside tags; keep them minimal, containing only the new value. The extension extracts content with a `<...>...</...>` regex, so tags with spaces or units technically work (e.g. `<Stamina>5 points</Stamina>` is still recognized) — but consistent formatting keeps the model from getting confused.
+- **State sync limits**: the extension only stores data tied to the AI conversation — states live in the current chat's metadata and are **not** written back to character cards or global settings. If you want to carry states into a new chat, import them manually via World Info, or record the initial states in the character card's description/extension fields (this extension does not currently write to card fields directly).
+- **Duplicate information**: if you use a **World Info entry** to inject states *and* keep this extension's prompt injection on, the model may receive the state list twice, wasting context. Generally **pick one**: rely on the extension for live, dynamic states (best for rapidly changing values), or maintain static/initial states in World Info (better as long-term background). A hybrid works too: store the initial states in World Info, use **Import from World Info** to load them into the extension, and let the extension take over from there.
+- **Permissions & safety**: the extension runs purely on the front end and needs no server plugin. It never talks to AI models or APIs directly — it only uses the events and interfaces SillyTavern provides. Safe to use in offline/local setups.
 
-生命值 10/10
-法力 5/5
-金币 100
+## Example scenario
 
-这些状态将显示在状态栏窗口中，并会在对话提示中提供给 AI。
+1. The character card defines no states; you decide to track them in the extension. After enabling it, click the **States** button and add three states:
 
-2. 开始对话后，用户输入：“**我挥剑砍向怪物。**” 扩展在发送前会附加系统提示告知 AI 当前生命值等状态各是多少。  
-AI 可能回复：“**你成功命中怪物，但怪物也反击了你一下，造成轻伤。<生命值>8/10</生命值>**”  
-扩展将解析到 `<生命值>8/10</生命值>`，把状态栏中的“生命值”更新为 8/10，并在实际聊天记录中隐藏该标签，只留下 AI 的文字描述“你成功命中怪物，但怪物也反击了你一下，造成轻伤。”。
+```
+Health 10/10
+Mana 5/5
+Gold 100
+```
 
-3. 用户和 AI 继续剧情交互，扩展会持续维护这些状态值。每当生命值或其他状态改变，AI 都会用标签明确指出新的数值，扩展随即更新显示。这使用户能够**直观地跟踪角色状态**，而不需要在对话中反复询问或手动记录。
+These appear in the status bar window and are provided to the AI in the injected prompt.
 
-4. 如果用户希望将当前状态保存到世界观设定中，例如作为存档或分享，可以点击“生成世界书条目”，然后在世界信息中创建条目粘贴内容。
+2. The conversation begins. You type: "**I swing my sword at the monster.**" Before sending, the extension attaches a system note telling the AI the current Health and other values.
+The AI might reply: "**You land a solid hit, but the monster swipes back and grazes you. <Health>8/10</Health>**"
+The extension parses `<Health>8/10</Health>`, updates Health to 8/10 in the status bar, and hides the tag from the actual chat log — leaving only the narrative text.
 
-通过以上流程，SillyTavern-state 扩展实现了对角色状态的方便管理和对AI响应的动态约束，大大提升了沉浸式角色扮演体验。
+3. As the story continues, the extension keeps maintaining these values. Whenever Health or another state changes, the AI marks the new value with a tag and the extension updates the display — so you can **track character states at a glance** without repeatedly asking or taking notes.
+
+4. If you want to save the current states into your world setup — as a backup or to share — click **Export to World Info**, then create a World Info entry and paste the content in.
+
+Through this flow, SillyTavern-state makes character-state management effortless and dynamically constrains AI responses, greatly improving the immersive roleplay experience.
+
+## Credits
+
+- Original extension: **[ThirteenthMonth/SillyTavern-state](https://github.com/ThirteenthMonth/SillyTavern-state)** — all features and design are theirs.
+- This fork: adds the bilingual English/中文 UI and prompt injection (v1.2.0). If you prefer the original Chinese-only release, use the upstream repo — functionally they are the same.
