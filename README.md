@@ -1,11 +1,21 @@
 # SillyTavern-state · Character Status Bar
 
-> **This is the exact same extension as [ThirteenthMonth/SillyTavern-state](https://github.com/ThirteenthMonth/SillyTavern-state) — 100% feature-identical, nothing removed, nothing changed in how it works. The difference: English works now.** The entire UI, every button, alert and setting — and even the prompt injected into your chats — is fully bilingual (English / 中文). All credit for the original extension goes to **ThirteenthMonth**.
+> **This fork keeps the exact same state-tracking engine as [ThirteenthMonth/SillyTavern-state](https://github.com/ThirteenthMonth/SillyTavern-state) — prompt injection, tag parsing and per-chat storage work identically. On top of that it adds a fully bilingual UI (English / 中文) and a cleaner, mobile-friendly status panel with dedicated view and editing modes.** All credit for the original extension goes to **ThirteenthMonth**.
 
 A SillyTavern extension that adds a draggable floating status bar for tracking character states (HP, MP, gold, …). Before each generation it injects the current states as a system note, so the AI replies with only the changed values as `<name>value</name>` XML tags; the extension parses them back into the status bar and hides the tags from the chat. States are stored per chat, and one-click buttons convert them to/from World Info entries.
 
-## What's new in this fork (v1.2.0)
+## What's new in this fork
 
+### v1.4.0 — polished panel & mobile support
+- **Editing-mode emphasis**: while editing, the panel turns fully **opaque** with a **dark drop shadow**, so it clearly stands out from the page underneath.
+- **Mobile touch drag**: the panel can now be dragged by its title bar on touch screens — no longer mouse-only.
+- **Subtle mobile toggle button**: on small screens the `States` button becomes a slim **vertical tab** hugging the right edge, staying out of the way during roleplay.
+
+### v1.3.0 — compact view mode & editing mode
+- **Normal (view) mode**: the status window now opens as a clean, compact read-only list — just the state names/values and a single **Edit** button at the bottom. No buttons cluttering every row.
+- **Editing mode**: clicking **Edit** reveals the full management UI — per-item Edit/Delete buttons, the batch-add box, and the World Info export/import tools. Click **Done** to return to the compact view.
+
+### v1.2.0 — bilingual English / 中文
 - **Full English UI** — floating panel, buttons, dialogs, settings drawer, alerts.
 - **English prompt injection** — the "Current state" system note and its instructions are sent in English too (previously Chinese only), so models that struggle with Chinese instructions now behave properly.
 - **Language setting** — `Auto` follows the SillyTavern interface language (falling back to your browser language), or pin it to `中文` / `English` in the extension settings.
@@ -16,6 +26,8 @@ A SillyTavern extension that adds a draggable floating status bar for tracking c
 ## Features
 
 - **Floating status bar UI**: a draggable floating window, toggled via a floating button. View and manage the current character's states at any time.
+- **Compact view mode + one-button editing**: the status bar shows a clean read-only list by default; a single **Edit** button switches to editing mode (opaque, shadowed panel) for add/edit/delete and World Info tools, and **Done** switches back.
+- **Mobile friendly**: touch-drag the panel anywhere on the screen; on small screens the toggle button collapses into a subtle vertical edge tab.
 - **Batch state management**: add multiple states at once (one `Name Value` pair per line), plus edit and delete for existing states. Changes are saved instantly and kept separate per chat.
 - **Prompt injection & state sync**: before each generation, the extension injects the current states into the prompt as a system note, guiding the model to update them. The AI only needs to reply with the changed items as `<Name>NewValue</Name>` XML tags.
 - **Automatic parsing**: the extension watches AI replies, parses the XML state tags, updates the matching values in the status bar, and strips the tags from the message so they never disturb your reading.
@@ -41,12 +53,14 @@ After installation the client loads the extension automatically. If it doesn't, 
 
 ## Usage
 
-**1. Open the status bar window**: once the extension is enabled, a floating **`States`** button appears in the bottom-right corner of the page. Click it to open or hide the floating **Character Status** window.
+**1. Open the status bar window**: once the extension is enabled, a floating **`States`** button appears in the bottom-right corner of the page (on mobile it's a slim vertical tab on the right edge). Click it to open or hide the floating **Character Status** window. Drag the window by its title bar — touch dragging works on mobile too.
 
-**2. View and manage states**: the window shows the current session's state list, each item displayed as `Name: Value`.
-- **Add states**: in the multi-line text box at the bottom, enter one or more states in `Name Value` format (one per line), then click **Add**. Each line is parsed in batch; if a name matches an existing item, its value is updated instead.
+**2. View and manage states**: the window opens in **view mode** — a compact, read-only list of the current session's states, one `Name Value` pair per line, with a single **Edit** button at the bottom. Click **Edit** to switch to **editing mode** (the panel turns opaque with a dark shadow):
+- **Add states**: in the multi-line text box, enter one or more states in `Name Value` format (one per line), then click **Add**. Each line is parsed in batch; if a name matches an existing item, its value is updated instead.
 - **Edit a state**: click **Edit** next to an item to make it editable. Change the name or value, then click **Save** to apply or **Cancel** to discard. If you rename an item, make sure it doesn't clash with another existing name.
 - **Delete a state**: click **Delete** next to an item to remove it.
+
+Click **Done** at the bottom to return to the compact view mode.
 
 All add/edit/delete operations take effect immediately and are saved automatically into the current chat's metadata. States never leak between chats — every chat has its own independent state list.
 
@@ -138,4 +152,4 @@ Through this flow, SillyTavern-state makes character-state management effortless
 ## Credits
 
 - Original extension: **[ThirteenthMonth/SillyTavern-state](https://github.com/ThirteenthMonth/SillyTavern-state)** — all features and design are theirs.
-- This fork: adds the bilingual English/中文 UI and prompt injection (v1.2.0). If you prefer the original Chinese-only release, use the upstream repo — functionally they are the same.
+- This fork: adds the bilingual English/中文 UI and prompt injection (v1.2.0), the compact view/editing panel modes (v1.3.0), and editing-mode styling plus mobile touch-drag and the vertical toggle button (v1.4.0). If you prefer the original Chinese-only release, use the upstream repo — the core state-tracking behavior is the same.
