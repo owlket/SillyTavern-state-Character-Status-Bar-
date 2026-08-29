@@ -7,7 +7,8 @@ A SillyTavern extension that adds a draggable floating status bar for tracking c
 ## What's new in this fork
 
 ### v1.4.0 — polished panel & mobile support
-- **Editing-mode emphasis**: while editing, the panel turns fully **opaque** with a **dark drop shadow**, so it clearly stands out from the page underneath.
+- **Editing-mode emphasis**: while editing, the panel background deepens with a **dark drop shadow**, so it clearly stands out from the page underneath.
+- **Live appearance sliders**: editing mode now includes **panel opacity** and **glow / shadow intensity** sliders right inside the panel — drag them and watch the panel change in real time; your choice is saved automatically and restored on reload.
 - **Mobile touch drag**: the panel can now be dragged by its title bar on touch screens — no longer mouse-only.
 - **Subtle mobile toggle button**: on small screens the `States` button becomes a slim **vertical tab** hugging the right edge, staying out of the way during roleplay.
 
@@ -26,7 +27,7 @@ A SillyTavern extension that adds a draggable floating status bar for tracking c
 ## Features
 
 - **Floating status bar UI**: a draggable floating window, toggled via a floating button. View and manage the current character's states at any time.
-- **Compact view mode + one-button editing**: the status bar shows a clean read-only list by default; a single **Edit** button switches to editing mode (opaque, shadowed panel) for add/edit/delete and World Info tools, and **Done** switches back.
+- **Compact view mode + one-button editing**: the status bar shows a clean read-only list by default; a single **Edit** button switches to editing mode (shadowed panel with **live opacity & glow sliders**) for add/edit/delete and World Info tools, and **Done** switches back.
 - **Mobile friendly**: touch-drag the panel anywhere on the screen; on small screens the toggle button collapses into a subtle vertical edge tab.
 - **Batch state management**: add multiple states at once (one `Name Value` pair per line), plus edit and delete for existing states. Changes are saved instantly and kept separate per chat.
 - **Prompt injection & state sync**: before each generation, the extension injects the current states into the prompt as a system note, guiding the model to update them. The AI only needs to reply with the changed items as `<Name>NewValue</Name>` XML tags.
@@ -152,4 +153,4 @@ Through this flow, SillyTavern-state makes character-state management effortless
 ## Credits
 
 - Original extension: **[ThirteenthMonth/SillyTavern-state](https://github.com/ThirteenthMonth/SillyTavern-state)** — all features and design are theirs.
-- This fork: adds the bilingual English/中文 UI and prompt injection (v1.2.0), the compact view/editing panel modes (v1.3.0), and editing-mode styling plus mobile touch-drag and the vertical toggle button (v1.4.0). If you prefer the original Chinese-only release, use the upstream repo — the core state-tracking behavior is the same.
+- This fork: adds the bilingual English/中文 UI and prompt injection (v1.2.0), the compact view/editing panel modes (v1.3.0), and editing-mode styling with live opacity/glow sliders, mobile touch-drag and the vertical toggle button (v1.4.0). If you prefer the original Chinese-only release, use the upstream repo — the core state-tracking behavior is the same.

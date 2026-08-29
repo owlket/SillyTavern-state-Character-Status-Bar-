@@ -8,6 +8,9 @@ const STATE_EXT_DEFAULT_SETTINGS = {
     customInstruction: '',
     // 'auto' follows the SillyTavern UI language; 'zh' / 'en' force a language
     language: 'auto',
+    // Panel appearance, live-adjustable via sliders in editing mode
+    panelOpacity: 0.95,
+    panelGlow: 1,
 };
 
 // ---------------------------------------------------------------------------
@@ -52,6 +55,8 @@ const STATE_EXT_STRINGS = {
         settingInstructionDesc: '追加到系统提示末尾的自定义说明，可用于约束输出或描述特殊规则。',
         settingInstructionPh: '例如：当状态变化时请附带一句剧情描述。',
         settingRestore: '恢复默认设置',
+        appearanceOpacity: '面板不透明度',
+        appearanceGlow: '发光 / 阴影强度',
     },
     en: {
         toggleButton: 'States',
@@ -91,6 +96,8 @@ const STATE_EXT_STRINGS = {
         settingInstructionDesc: 'Custom text appended to the end of the system prompt, e.g. output constraints or special rules.',
         settingInstructionPh: 'E.g.: When a state changes, add one sentence of story description.',
         settingRestore: 'Restore defaults',
+        appearanceOpacity: 'Panel opacity',
+        appearanceGlow: 'Glow / shadow',
     },
 };
 
@@ -269,6 +276,18 @@ function stateExtResetSettings() {
             <button id="stateExtAddBtn" data-stateext-i18n="addButton"></button>
             <button id="stateExtGenBtn" data-stateext-i18n="genButton"></button>
             <button id="stateExtImpBtn" data-stateext-i18n="impButton"></button>
+            <div id="stateExtAppearance">
+                <div class="appearance-row">
+                    <span class="appearance-label" data-stateext-i18n="appearanceOpacity"></span>
+                    <input type="range" id="stateExtOpacityRange" min="10" max="100" step="1" />
+                    <span class="appearance-value" id="stateExtOpacityVal"></span>
+                </div>
+                <div class="appearance-row">
+                    <span class="appearance-label" data-stateext-i18n="appearanceGlow"></span>
+                    <input type="range" id="stateExtGlowRange" min="0" max="100" step="1" />
+                    <span class="appearance-value" id="stateExtGlowVal"></span>
+                </div>
+            </div>
         </div>
         <div id="stateExtFooter">
             <button id="stateExtEditModeBtn" data-stateext-i18n="editButton"></button>
@@ -287,6 +306,22 @@ function stateExtResetSettings() {
     panel.querySelector('#stateExtEditModeBtn').onclick = () => panel.classList.add('editing');
     panel.querySelector('#stateExtDoneBtn').onclick = () => panel.classList.remove('editing');
 
+    // 外观滑杆：实时调整面板不透明度与发光/阴影强度（仅编辑模式可见）
+    // Appearance sliders (edit mode only): live panel opacity + glow/shadow intensity.
+    // stateExtUpdateSettings() re-applies runtime settings instantly and persists via saveSettingsDebounced.
+    const opacityRange = panel.querySelector('#stateExtOpacityRange');
+    const glowRange = panel.querySelector('#stateExtGlowRange');
+    if (opacityRange) {
+        opacityRange.addEventListener('input', () => {
+            stateExtUpdateSettings({ panelOpacity: Number(opacityRange.value) / 100 });
+        });
+    }
+    if (glowRange) {
+        glowRange.addEventListener('input', () => {
+            stateExtUpdateSettings({ panelGlow: Number(glowRange.value) / 100 });
+        });
+    }
+
     // 根据当前语言设置刷新所有界面文本 / Re-apply all UI texts for the current language
     function applyLanguageToUI() {
         toggleBtn.textContent = stateExtT('toggleButton');
@@ -304,6 +339,25 @@ function stateExtResetSettings() {
         refreshListUI();
     }
 
+    // 将外观设置（不透明度 / 发光强度）写入面板的 CSS 变量，并同步滑杆位置与百分比显示
+    // Apply appearance settings to the panel's CSS variables and sync the sliders + % labels
+    function applyAppearance(config) {
+        const opacity = Math.min(1, Math.max(0.1, Number(config.panelOpacity ?? 0.95)));
+        const glow = Math.min(1, Math.max(0, Number(config.panelGlow ?? 1)));
+        panel.style.setProperty('--stateext-opacity', opacity.toFixed(2));
+        panel.style.setProperty('--stateext-glow', glow.toFixed(2));
+        // 编辑模式的深色阴影强度跟随发光强度 / Edit-mode dark shadow follows glow intensity
+        panel.style.setProperty('--stateext-shadow', (glow * 0.85).toFixed(2));
+        const opacityRangeEl = panel.querySelector('#stateExtOpacityRange');
+        const glowRangeEl = panel.querySelector('#stateExtGlowRange');
+        const opacityValEl = panel.querySelector('#stateExtOpacityVal');
+        const glowValEl = panel.querySelector('#stateExtGlowVal');
+        if (opacityRangeEl) opacityRangeEl.value = Math.round(opacity * 100);
+        if (glowRangeEl) glowRangeEl.value = Math.round(glow * 100);
+        if (opacityValEl) opacityValEl.textContent = Math.round(opacity * 100) + '%';
+        if (glowValEl) glowValEl.textContent = Math.round(glow * 100) + '%';
+    }
+
     function applyRuntimeSettings(currentSettings) {
         const config = currentSettings || getCurrentSettings();
         const isEnabled = config.enabled !== false;
@@ -313,6 +367,7 @@ function stateExtResetSettings() {
         if (panel && !isEnabled) {
             panel.style.display = 'none';
         }
+        applyAppearance(config);
         applyLanguageToUI();
         return config;
     }

@@ -27,7 +27,9 @@
     right: 10px;
     z-index: 9999;
     display: none;
-    background: rgba(20, 20, 40, 0.95);
+    /* 不透明度由 --stateext-opacity 控制（编辑模式滑杆实时调整）
+       Opacity driven by --stateext-opacity (live slider in edit mode) */
+    background: rgba(20, 20, 40, var(--stateext-opacity, 0.95));
     color: #fff;
     padding: 10px;
     border: 1px solid #00f0ff;
@@ -35,7 +37,8 @@
     max-width: 300px;
     max-height: 400px;
     overflow-y: auto;
-    box-shadow: 0 0 12px #00f0ff;
+    /* 发光强度由 --stateext-glow 控制 / Glow intensity via --stateext-glow */
+    box-shadow: 0 0 12px rgba(0, 240, 255, var(--stateext-glow, 1));
     font-size: 12px;
     font-family: 'Orbitron', 'Courier New', monospace;
 }
@@ -157,9 +160,40 @@
 /* 编辑模式视觉强调：背景变为不透明 + 面板四周加深色阴影
    Edit mode emphasis: opaque background + dark shadow around the panel */
 #stateExtPanel.editing {
-    background: rgba(20, 20, 30, 0.98);
-    box-shadow: 0 0 25px 8px rgba(0, 0, 0, 0.85), 0 0 5px #00f0ff;
+    background: rgba(20, 20, 30, var(--stateext-opacity, 0.95));
+    box-shadow: 0 0 25px 8px rgba(0, 0, 0, var(--stateext-shadow, 0.85)), 0 0 5px rgba(0, 240, 255, var(--stateext-glow, 1));
     z-index: 10001;
+}
+
+/* 外观调节滑杆（仅编辑模式可见，随 #stateExtEditArea 一起显示/隐藏）
+   Appearance sliders (edit mode only, shown/hidden with #stateExtEditArea) */
+#stateExtAppearance {
+    margin-top: 8px;
+    padding-top: 6px;
+    border-top: 1px dashed rgba(0, 255, 255, 0.4);
+}
+#stateExtAppearance .appearance-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+}
+#stateExtAppearance .appearance-label {
+    flex: 0 0 auto;
+    color: #00f0ff;
+}
+#stateExtAppearance input[type="range"] {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 14px;
+    padding: 0;
+    accent-color: #ff0080;
+    cursor: pointer;
+}
+#stateExtAppearance .appearance-value {
+    flex: 0 0 34px;
+    text-align: right;
+    color: #fffb00;
 }
 
 /* 底部模式切换按钮行 / Footer row holding the mode toggle button */

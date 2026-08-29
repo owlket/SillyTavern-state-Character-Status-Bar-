@@ -27,10 +27,10 @@ Release workflow: `node --check index.js` → bump `manifest.json` version → c
 
 ### 1. Settings (`index.js` top, ~lines 3–160)
 
-- `STATE_EXT_DEFAULT_SETTINGS` — defaults: `enabled`, `autoInjectPrompt`, `stripTagsFromChat`, `customInstruction`, `language` (`auto`/`zh`/`en`).
+- `STATE_EXT_DEFAULT_SETTINGS` — defaults: `enabled`, `autoInjectPrompt`, `stripTagsFromChat`, `customInstruction`, `language` (`auto`/`zh`/`en`), `panelOpacity` (0.1–1), `panelGlow` (0–1).
 - `stateExtEnsureSettings()` — merges stored settings with defaults. Uses SillyTavern's `extension_settings` API when available, falls back to an in-memory copy.
 - `stateExtPersistSettings()` — writes via `context.extensionSettings[KEY] = settings` + `context.saveSettingsDebounced()`.
-- `applyRuntimeSettings(settings)` (on `globalThis.stateExt`) — re-applies language + updates toggle button label live. Called by `stateExtApplyAndPersist()` after every settings change and by the settings panel init.
+- `applyRuntimeSettings(settings)` (on `globalThis.stateExt`) — re-applies language + panel appearance (`applyAppearance()`) + updates toggle button label live. Called by `stateExtApplyAndPersist()` after every settings change and by the settings panel init.
 - **To add a new setting:** add a default → add a control in `index.html` → wire it in `initExtensionSettingsPanel()` (~line 540) → read it via `getCurrentSettings()`.
 
 ### 2. Bilingual i18n (~lines 16–160)
@@ -69,7 +69,8 @@ Created imperatively in `index.js` (no HTML file for the panel):
 - Panel defaults to **view mode**: compact single-line items, only the footer **Edit** button visible.
 - `#stateExtEditModeBtn` adds `.editing` to the panel; `#stateExtDoneBtn` removes it.
 - All show/hide logic is pure CSS in `style.css` (rules keyed on `#stateExtPanel:not(.editing)` / `.editing`) — JS never toggles individual controls.
-- Edit mode also gets opaque background + dark shadow (`#stateExtPanel.editing` in `style.css`).
+- Edit mode also gets deepened background + dark shadow (`#stateExtPanel.editing` in `style.css`).
+- Panel opacity / glow are **live-adjustable** via two sliders inside `#stateExtEditArea` (edit mode only): slider `input` events → `stateExtUpdateSettings({ panelOpacity / panelGlow })` → `applyAppearance()` writes the CSS vars `--stateext-opacity`, `--stateext-glow`, `--stateext-shadow` on the panel element; `style.css` consumes them with `var(...)` fallbacks. Persisted like any other setting; "Restore defaults" resets them.
 - **To hide/show something per mode, write a CSS rule — don't touch JS.**
 
 ### 6. Dragging (mouse + touch, ~lines 400–440)
@@ -112,10 +113,10 @@ Then hard-refresh the browser tab (**Ctrl+F5**) — SillyTavern caches extension
 | — | `ac9949a` | English README |
 | 1.3.0 | `545912a` | Compact view mode + Edit/Done mode toggle |
 | 1.4.0 | `0ad0354` | Edit-mode opaque bg + shadow; mobile: touch drag, vertical edge toggle button |
+| 1.4.0 | `00cf85d` | Live panel opacity + glow/shadow sliders in edit mode (CSS vars `--stateext-*`) |
 
 ## Known limitations / future ideas
 
 - Panel position & edit-mode state reset on page refresh.
-- Opacity/shadow intensity are fixed CSS values (could become settings-drawer sliders).
 - No direct write to character-card fields; World Info transfer is clipboard-based.
 - Upstream (`origin`) is Chinese-only — when pulling upstream changes, re-check `STATE_EXT_STRINGS` and `data-stateext-i18n` coverage for any new hard-coded Chinese strings.
