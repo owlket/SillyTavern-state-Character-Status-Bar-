@@ -127,3 +127,37 @@
         font-size: 10px;
     }
 }
+
+
+/* ================= 查看 / 编辑模式 View / Edit mode ================= */
+/* 查看模式（默认）：隐藏全部编辑控件，仅保留状态列表和底部“编辑”按钮
+   View mode (default): hide all editing controls, keep only the list + Edit button */
+#stateExtPanel:not(.editing) #stateExtEditArea,
+#stateExtPanel:not(.editing) #stateExtList .edit-btn,
+#stateExtPanel:not(.editing) #stateExtList .delete-btn,
+#stateExtPanel:not(.editing) #stateExtDoneBtn {
+    display: none;
+}
+
+/* 编辑模式：隐藏“编辑”入口按钮 / Edit mode: hide the Edit entry button */
+#stateExtPanel.editing #stateExtEditModeBtn {
+    display: none;
+}
+
+/* 底部模式切换按钮行 / Footer row holding the mode toggle button */
+#stateExtFooter {
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px dashed rgba(0, 255, 255, 0.4);
+    text-align: center;
+}
+
+/* 查看模式：紧凑的单行列表项 / View mode: compact single-line list items */
+#stateExtPanel:not(.editing) #stateExtList li {
+    border-bottom: none;
+    padding: 2px 0;
+}
+#stateExtPanel:not(.editing) #stateExtList .state-name,
+#stateExtPanel:not(.editing) #stateExtList .state-value {
+    display: inline;
+}

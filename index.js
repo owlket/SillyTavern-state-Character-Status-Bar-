@@ -24,6 +24,7 @@ const STATE_EXT_STRINGS = {
         saveButton: '保存',
         cancelButton: '取消',
         editButton: '编辑',
+        doneButton: '完成',
         deleteButton: '删除',
         alertNameEmpty: '名称不能为空！',
         alertNameConflict: '已有相同名称的状态项存在！',
@@ -62,6 +63,7 @@ const STATE_EXT_STRINGS = {
         saveButton: 'Save',
         cancelButton: 'Cancel',
         editButton: 'Edit',
+        doneButton: 'Done',
         deleteButton: 'Delete',
         alertNameEmpty: 'Name cannot be empty!',
         alertNameConflict: 'A state item with the same name already exists!',
@@ -262,16 +264,28 @@ function stateExtResetSettings() {
     panel.innerHTML = `
         <div class="header" data-stateext-i18n="panelTitle"></div>
         <ul id="stateExtList"></ul>
-        <textarea id="stateExtInput" rows="3" data-stateext-i18n-ph="batchPlaceholder"></textarea>
-        <br/>
-        <button id="stateExtAddBtn" data-stateext-i18n="addButton"></button>
-        <button id="stateExtGenBtn" data-stateext-i18n="genButton"></button>
-        <button id="stateExtImpBtn" data-stateext-i18n="impButton"></button>
+        <div id="stateExtEditArea">
+            <textarea id="stateExtInput" rows="3" data-stateext-i18n-ph="batchPlaceholder"></textarea>
+            <button id="stateExtAddBtn" data-stateext-i18n="addButton"></button>
+            <button id="stateExtGenBtn" data-stateext-i18n="genButton"></button>
+            <button id="stateExtImpBtn" data-stateext-i18n="impButton"></button>
+        </div>
+        <div id="stateExtFooter">
+            <button id="stateExtEditModeBtn" data-stateext-i18n="editButton"></button>
+            <button id="stateExtDoneBtn" data-stateext-i18n="doneButton"></button>
+        </div>
     `;
     document.body.appendChild(panel);
 
     globalThis.stateExt.toggleBtn = toggleBtn;
     globalThis.stateExt.panel = panel;
+
+    // 查看 / 编辑模式切换：默认为紧凑查看模式（仅状态列表 + “编辑”按钮），
+    // 点击“编辑”进入编辑模式（显示每项的编辑/删除按钮与批量操作区），点击“完成”返回。
+    // View/edit mode toggle: compact view mode by default (list + a single Edit button);
+    // Edit enters editing mode (per-item buttons + batch area), Done returns to view mode.
+    panel.querySelector('#stateExtEditModeBtn').onclick = () => panel.classList.add('editing');
+    panel.querySelector('#stateExtDoneBtn').onclick = () => panel.classList.remove('editing');
 
     // 根据当前语言设置刷新所有界面文本 / Re-apply all UI texts for the current language
     function applyLanguageToUI() {
