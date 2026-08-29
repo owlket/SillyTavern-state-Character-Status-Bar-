@@ -1,15 +1,15 @@
 <div id="stateExtSettingsRoot">
   <div class="inline-drawer">
     <div class="inline-drawer-toggle inline-drawer-header">
-      <b>角色状态栏</b>
+      <b data-stateext-i18n="drawerTitle">角色状态栏</b>
       <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
     </div>
     <div class="inline-drawer-content">
       <div class="extension-content flex flexFlowColumn gap10px">
         <div class="extension-content-item">
           <div class="flex flexFlowColumn">
-            <div class="settings-title-text">启用角色状态栏</div>
-            <div class="settings-title-description">
+            <div class="settings-title-text" data-stateext-i18n="settingEnable">启用角色状态栏</div>
+            <div class="settings-title-description" data-stateext-i18n="settingEnableDesc">
               控制扩展的全部功能，包括悬浮面板、提示注入与状态解析。
             </div>
           </div>
@@ -23,10 +23,22 @@
 
         <div class="divider"></div>
 
+        <div class="extension-content-item box-container flex flexFlowColumn">
+          <div class="settings-title-text" data-stateext-i18n="settingLanguage">界面语言</div>
+          <div class="settings-title-description" data-stateext-i18n="settingLanguageDesc">
+            选择扩展界面与注入提示使用的语言；“自动”跟随 SillyTavern 界面语言。
+          </div>
+          <select id="stateExt-setting-language" class="text_pole">
+            <option value="auto">自动 / Auto</option>
+            <option value="zh">中文</option>
+            <option value="en">English</option>
+          </select>
+        </div>
+
         <div class="extension-content-item box-container">
           <div class="flex flexFlowColumn">
-            <div class="settings-title-text">发送前注入系统提示</div>
-            <div class="settings-title-description">
+            <div class="settings-title-text" data-stateext-i18n="settingInject">发送前注入系统提示</div>
+            <div class="settings-title-description" data-stateext-i18n="settingInjectDesc">
               为最后一条用户消息补充“当前状态”说明，提示 AI 使用 XML 标签更新数值。
             </div>
           </div>
@@ -40,8 +52,8 @@
 
         <div class="extension-content-item box-container">
           <div class="flex flexFlowColumn">
-            <div class="settings-title-text">隐藏消息中的状态标签</div>
-            <div class="settings-title-description">
+            <div class="settings-title-text" data-stateext-i18n="settingStrip">隐藏消息中的状态标签</div>
+            <div class="settings-title-description" data-stateext-i18n="settingStripDesc">
               解析 AI 回复的 &lt;状态&gt; 标签后，仅保留纯剧情文本，不在聊天记录中显示标签。
             </div>
           </div>
@@ -54,21 +66,22 @@
         </div>
 
         <div class="extension-content-item box-container flex flexFlowColumn">
-          <div class="settings-title-text">附加提示说明</div>
-          <div class="settings-title-description">
+          <div class="settings-title-text" data-stateext-i18n="settingInstruction">附加提示说明</div>
+          <div class="settings-title-description" data-stateext-i18n="settingInstructionDesc">
             追加到系统提示末尾的自定义说明，可用于约束输出或描述特殊规则。
           </div>
           <textarea
             id="stateExt-setting-instruction"
             class="text_pole"
             rows="3"
+            data-stateext-i18n-ph="settingInstructionPh"
             placeholder="例如：当状态变化时请附带一句剧情描述。"
           ></textarea>
         </div>
 
         <div class="extension-content-item">
           <button id="stateExt-setting-restore" class="menu_button">
-            <i class="fa-solid fa-rotate-left margin-r5"></i>恢复默认设置
+            <i class="fa-solid fa-rotate-left margin-r5"></i><span data-stateext-i18n="settingRestore">恢复默认设置</span>
           </button>
         </div>
       </div>

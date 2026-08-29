@@ -6,7 +6,121 @@ const STATE_EXT_DEFAULT_SETTINGS = {
     autoInjectPrompt: true,
     stripTagsFromChat: true,
     customInstruction: '',
+    // 'auto' follows the SillyTavern UI language; 'zh' / 'en' force a language
+    language: 'auto',
 };
+
+// ---------------------------------------------------------------------------
+// Bilingual (中文 / English) string table
+// ---------------------------------------------------------------------------
+const STATE_EXT_STRINGS = {
+    zh: {
+        toggleButton: '状态栏',
+        panelTitle: '角色状态栏',
+        batchPlaceholder: '每行输入 状态名 和 值',
+        addButton: '添加',
+        genButton: '生成世界书条目',
+        impButton: '从世界书提取',
+        saveButton: '保存',
+        cancelButton: '取消',
+        editButton: '编辑',
+        deleteButton: '删除',
+        alertNameEmpty: '名称不能为空！',
+        alertNameConflict: '已有相同名称的状态项存在！',
+        alertNoStates: '当前没有任何状态项可生成。',
+        worldInfoHeader: '角色状态：',
+        alertCopied: '世界书条目内容已复制到剪贴板！\n请在世界信息中创建新条目并粘贴内容。',
+        promptManualCopy: '请手动复制以下内容:',
+        alertClipboardEmpty: '剪贴板没有内容，请先复制世界书条目文本。',
+        alertImported: '已从剪贴板导入 {0} 个状态项。',
+        alertNothingImported: '未从剪贴板内容提取到任何状态项！',
+        alertClipboardFail: '无法读取剪贴板。请将世界书条目内容粘贴到上方文本框，然后点击“添加”。',
+        alertReset: '设置已恢复为默认值。',
+        promptHeader: '当前状态：',
+        promptInstruction: '请参考以上状态。在回答时，如有任何状态数值因剧情发生变化，请仅输出发生变化的状态项，并使用 XML 标签格式表示，例如：<生命值>8/10</生命值>。如果没有状态变化，请不要输出任何状态标签。',
+        drawerTitle: '角色状态栏',
+        settingEnable: '启用角色状态栏',
+        settingEnableDesc: '控制扩展的全部功能，包括悬浮面板、提示注入与状态解析。',
+        settingLanguage: '界面语言',
+        settingLanguageDesc: '选择扩展界面与注入提示使用的语言；“自动”跟随 SillyTavern 界面语言。',
+        settingInject: '发送前注入系统提示',
+        settingInjectDesc: '为最后一条用户消息补充“当前状态”说明，提示 AI 使用 XML 标签更新数值。',
+        settingStrip: '隐藏消息中的状态标签',
+        settingStripDesc: '解析 AI 回复的 <状态> 标签后，仅保留纯剧情文本，不在聊天记录中显示标签。',
+        settingInstruction: '附加提示说明',
+        settingInstructionDesc: '追加到系统提示末尾的自定义说明，可用于约束输出或描述特殊规则。',
+        settingInstructionPh: '例如：当状态变化时请附带一句剧情描述。',
+        settingRestore: '恢复默认设置',
+    },
+    en: {
+        toggleButton: 'States',
+        panelTitle: 'Character Status',
+        batchPlaceholder: 'One per line: Name Value',
+        addButton: 'Add',
+        genButton: 'Export to World Info',
+        impButton: 'Import from World Info',
+        saveButton: 'Save',
+        cancelButton: 'Cancel',
+        editButton: 'Edit',
+        deleteButton: 'Delete',
+        alertNameEmpty: 'Name cannot be empty!',
+        alertNameConflict: 'A state item with the same name already exists!',
+        alertNoStates: 'There are no state items to export.',
+        worldInfoHeader: 'Character state:',
+        alertCopied: 'World Info entry content copied to clipboard!\nCreate a new entry in World Info and paste it.',
+        promptManualCopy: 'Copy the following manually:',
+        alertClipboardEmpty: 'The clipboard is empty. Copy a World Info entry text first.',
+        alertImported: 'Imported {0} state item(s) from the clipboard.',
+        alertNothingImported: 'No state items found in the clipboard content!',
+        alertClipboardFail: 'Cannot read the clipboard. Paste the World Info entry into the text box above and click "Add".',
+        alertReset: 'Settings have been restored to defaults.',
+        promptHeader: 'Current state:',
+        promptInstruction: 'Refer to the state values above. When answering, if any state value changes as a result of the story, output only the changed state items using XML tag format, e.g.: <Health>8/10</Health>. If nothing has changed, do not output any state tags.',
+        drawerTitle: 'Character Status Bar',
+        settingEnable: 'Enable Character Status Bar',
+        settingEnableDesc: 'Master switch for all extension features: floating panel, prompt injection and state parsing.',
+        settingLanguage: 'Language',
+        settingLanguageDesc: 'Language for the extension UI and the injected prompt. "Auto" follows the SillyTavern UI language.',
+        settingInject: 'Inject system prompt before sending',
+        settingInjectDesc: 'Adds a "Current state" note before the last user message, instructing the AI to update values with XML tags.',
+        settingStrip: 'Hide state tags in messages',
+        settingStripDesc: 'After parsing <state> tags from AI replies, keep only the story text in the chat log.',
+        settingInstruction: 'Extra instruction',
+        settingInstructionDesc: 'Custom text appended to the end of the system prompt, e.g. output constraints or special rules.',
+        settingInstructionPh: 'E.g.: When a state changes, add one sentence of story description.',
+        settingRestore: 'Restore defaults',
+    },
+};
+
+// Prefixes used by injected state system notes, in every supported language,
+// so old notes are cleaned up even after switching languages.
+const STATE_EXT_NOTE_PREFIXES = Object.values(STATE_EXT_STRINGS).map(pack => pack.promptHeader);
+
+function stateExtResolveLanguage(settings) {
+    const pref = settings && settings.language;
+    if (pref === 'zh' || pref === 'en') {
+        return pref;
+    }
+    // 'auto': follow the SillyTavern UI language (localStorage 'language'),
+    // then fall back to the browser language.
+    let locale = '';
+    try {
+        locale = String(localStorage.getItem('language') || '').toLowerCase();
+    } catch (error) { /* ignore */ }
+    if (!locale) {
+        try {
+            locale = String(navigator.language || '').toLowerCase();
+        } catch (error) { /* ignore */ }
+    }
+    return locale.startsWith('zh') ? 'zh' : 'en';
+}
+
+function stateExtT(key, ...args) {
+    const lang = stateExtResolveLanguage(stateExtEnsureSettings());
+    const pack = STATE_EXT_STRINGS[lang] || STATE_EXT_STRINGS.en;
+    const template = pack[key] ?? STATE_EXT_STRINGS.en[key] ?? key;
+    return template.replace(/\{(\d+)\}/g, (match, index) => (args[index] !== undefined ? String(args[index]) : match));
+}
 
 function stateExtCloneDefaultSettings() {
     return JSON.parse(JSON.stringify(STATE_EXT_DEFAULT_SETTINGS));
@@ -139,25 +253,42 @@ function stateExtResetSettings() {
     // 创建悬浮按钮
     const toggleBtn = document.createElement('button');
     toggleBtn.id = 'stateExtToggleBtn';
-    toggleBtn.textContent = '状态栏';
+    toggleBtn.textContent = stateExtT('toggleButton');
     document.body.appendChild(toggleBtn);
 
     // 创建悬浮窗口面板
     const panel = document.createElement('div');
     panel.id = 'stateExtPanel';
     panel.innerHTML = `
-        <div class="header">角色状态栏</div>
+        <div class="header" data-stateext-i18n="panelTitle"></div>
         <ul id="stateExtList"></ul>
-        <textarea id="stateExtInput" rows="3" placeholder="每行输入 状态名 和 值"></textarea>
+        <textarea id="stateExtInput" rows="3" data-stateext-i18n-ph="batchPlaceholder"></textarea>
         <br/>
-        <button id="stateExtAddBtn">添加</button>
-        <button id="stateExtGenBtn">生成世界书条目</button>
-        <button id="stateExtImpBtn">从世界书提取</button>
+        <button id="stateExtAddBtn" data-stateext-i18n="addButton"></button>
+        <button id="stateExtGenBtn" data-stateext-i18n="genButton"></button>
+        <button id="stateExtImpBtn" data-stateext-i18n="impButton"></button>
     `;
     document.body.appendChild(panel);
 
     globalThis.stateExt.toggleBtn = toggleBtn;
     globalThis.stateExt.panel = panel;
+
+    // 根据当前语言设置刷新所有界面文本 / Re-apply all UI texts for the current language
+    function applyLanguageToUI() {
+        toggleBtn.textContent = stateExtT('toggleButton');
+        const applyTo = (root) => {
+            if (!root) return;
+            root.querySelectorAll('[data-stateext-i18n]').forEach(el => {
+                el.textContent = stateExtT(el.getAttribute('data-stateext-i18n'));
+            });
+            root.querySelectorAll('[data-stateext-i18n-ph]').forEach(el => {
+                el.setAttribute('placeholder', stateExtT(el.getAttribute('data-stateext-i18n-ph')));
+            });
+        };
+        applyTo(panel);
+        applyTo(document.getElementById('stateExtSettingsRoot'));
+        refreshListUI();
+    }
 
     function applyRuntimeSettings(currentSettings) {
         const config = currentSettings || getCurrentSettings();
@@ -168,6 +299,7 @@ function stateExtResetSettings() {
         if (panel && !isEnabled) {
             panel.style.display = 'none';
         }
+        applyLanguageToUI();
         return config;
     }
 
@@ -186,10 +318,10 @@ function stateExtResetSettings() {
                 <span class="state-value">${item.value}</span>
                 <input class="edit-name" type="text" style="display:none;" />
                 <input class="edit-value" type="text" style="display:none;" />
-                <button class="save-btn" style="display:none;">保存</button>
-                <button class="cancel-btn" style="display:none;">取消</button>
-                <button class="edit-btn">编辑</button>
-                <button class="delete-btn">删除</button>
+                <button class="save-btn" style="display:none;">${stateExtT('saveButton')}</button>
+                <button class="cancel-btn" style="display:none;">${stateExtT('cancelButton')}</button>
+                <button class="edit-btn">${stateExtT('editButton')}</button>
+                <button class="delete-btn">${stateExtT('deleteButton')}</button>
             `;
             // 填充隐藏输入框的初始值
             li.querySelector('.edit-name').value = item.name;
@@ -210,13 +342,13 @@ function stateExtResetSettings() {
                 const newName = li.querySelector('.edit-name').value.trim();
                 const newValue = li.querySelector('.edit-value').value.trim();
                 if (!newName) {
-                    alert('名称不能为空！');
+                    alert(stateExtT('alertNameEmpty'));
                     return;
                 }
                 // 检查重名冲突
                 const conflict = stateList.find((it, i) => i !== idx && it.name === newName);
                 if (conflict) {
-                    alert('已有相同名称的状态项存在！');
+                    alert(stateExtT('alertNameConflict'));
                     return;
                 }
                 // 更新状态项并保存
@@ -301,19 +433,19 @@ function stateExtResetSettings() {
     // “生成世界书条目”按钮：复制当前状态列表的世界书格式文本
     panel.querySelector('#stateExtGenBtn').onclick = () => {
         if (stateList.length === 0) {
-            alert('当前没有任何状态项可生成。');
+            alert(stateExtT('alertNoStates'));
             return;
         }
-        let content = '角色状态：\n';
+        let content = stateExtT('worldInfoHeader') + '\n';
         stateList.forEach(item => {
             content += `${item.name} ${item.value}\n`;
         });
         // 尝试写入剪贴板
         navigator.clipboard.writeText(content).then(() => {
-            alert('世界书条目内容已复制到剪贴板！\n请在世界信息中创建新条目并粘贴内容。');
+            alert(stateExtT('alertCopied'));
         }).catch(() => {
             // 如果剪贴板不可用，则弹出可选择文本的对话框
-            prompt('请手动复制以下内容:', content);
+            prompt(stateExtT('promptManualCopy'), content);
         });
     };
 
@@ -322,7 +454,7 @@ function stateExtResetSettings() {
         try {
             const clipText = await navigator.clipboard.readText();
             if (!clipText) {
-                alert('剪贴板没有内容，请先复制世界书条目文本。');
+                alert(stateExtT('alertClipboardEmpty'));
                 return;
             }
             const lines = clipText.split(/\r?\n/);
@@ -348,12 +480,12 @@ function stateExtResetSettings() {
             if (imported > 0) {
                 saveMetadata();
                 refreshListUI();
-                alert(`已从剪贴板导入 ${imported} 个状态项。`);
+                alert(stateExtT('alertImported', imported));
             } else {
-                alert('未从剪贴板内容提取到任何状态项！');
+                alert(stateExtT('alertNothingImported'));
             }
         } catch (err) {
-            alert('无法读取剪贴板。请将世界书条目内容粘贴到上方文本框，然后点击“添加”。');
+            alert(stateExtT('alertClipboardFail'));
         }
     };
 
@@ -389,12 +521,12 @@ function stateExtResetSettings() {
                         break;
                     }
                 } catch (error) {
-                    console.warn(`[角色状态栏] 无法从 ${basePath} 加载设置模板:`, error);
+                    console.warn(`[Character Status] Failed to load settings template from ${basePath}:`, error);
                 }
             }
 
             if (!templateHtml) {
-                console.warn('[角色状态栏] 未能加载扩展设置模板。');
+                console.warn('[Character Status] Could not load the extension settings template.');
                 return;
             }
 
@@ -405,6 +537,7 @@ function stateExtResetSettings() {
             }
 
             const enableToggle = root.querySelector('#stateExt-setting-enable');
+            const languageSelect = root.querySelector('#stateExt-setting-language');
             const injectToggle = root.querySelector('#stateExt-setting-inject');
             const stripToggle = root.querySelector('#stateExt-setting-strip');
             const instructionTextarea = root.querySelector('#stateExt-setting-instruction');
@@ -412,6 +545,7 @@ function stateExtResetSettings() {
 
             function syncControls(config) {
                 if (enableToggle) enableToggle.checked = !!config.enabled;
+                if (languageSelect) languageSelect.value = config.language || 'auto';
                 if (injectToggle) injectToggle.checked = config.autoInjectPrompt !== false;
                 if (stripToggle) stripToggle.checked = config.stripTagsFromChat !== false;
                 if (instructionTextarea) instructionTextarea.value = config.customInstruction || '';
@@ -422,6 +556,13 @@ function stateExtResetSettings() {
             if (enableToggle) {
                 enableToggle.addEventListener('change', () => {
                     stateExtUpdateSettings({ enabled: enableToggle.checked });
+                });
+            }
+
+            if (languageSelect) {
+                languageSelect.addEventListener('change', () => {
+                    stateExtUpdateSettings({ language: languageSelect.value });
+                    applyLanguageToUI();
                 });
             }
 
@@ -454,7 +595,7 @@ function stateExtResetSettings() {
                 restoreButton.addEventListener('click', () => {
                     const defaults = stateExtResetSettings();
                     syncControls(defaults);
-                    window.alert('设置已恢复为默认值。');
+                    window.alert(stateExtT('alertReset'));
                 });
             }
         } finally {
@@ -527,7 +668,7 @@ globalThis.statePromptInterceptor = async function(chat, contextSize, abort, typ
     // 移除旧的状态系统提示，避免堆积
     for (let i = 0; i < chat.length; i++) {
         const msg = chat[i];
-        if (!msg.is_user && msg.name === 'System Note' && msg.mes && msg.mes.startsWith('当前状态')) {
+        if (!msg.is_user && msg.name === 'System Note' && msg.mes && STATE_EXT_NOTE_PREFIXES.some(prefix => msg.mes.startsWith(prefix))) {
             chat.splice(i, 1);
             i--;
         }
@@ -536,11 +677,11 @@ globalThis.statePromptInterceptor = async function(chat, contextSize, abort, typ
     const meta = SillyTavern.getContext().chatMetadata;
     const stateData = meta['sillyTavernState'];
     if (stateData && stateData.length > 0) {
-        let stateText = '当前状态：';
+        let stateText = stateExtT('promptHeader');
         stateData.forEach(item => {
             stateText += `\n${item.name} ${item.value}`;
         });
-        stateText += '\n请参考以上状态。在回答时，如有任何状态数值因剧情发生变化，请仅输出发生变化的状态项，并使用 XML 标签格式表示，例如：<生命值>8/10</生命值>。如果没有状态变化，请不要输出任何状态标签。';
+        stateText += '\n' + stateExtT('promptInstruction');
         const extraInstruction = (settings.customInstruction || '').trim();
         if (extraInstruction) {
             stateText += `\n${extraInstruction}`;

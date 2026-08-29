@@ -1,6 +1,12 @@
 # SillyTavern-state 扩展
 
-**SillyTavern-state** 扩展为 SillyTavern 添加了悬浮状态栏界面，用于管理角色的各类状态（如生命值、法力值、金币等）。每次用户发送消息前，扩展都会将当前状态作为系统提示插入，对 AI 的回复进行引导，使其参考这些状态并 **仅输出发生变化的状态项**（以 XML 标签格式呈现）。当 AI 回复包含状态标签时，扩展会自动解析并更新状态栏，同时从聊天消息中移除这些 XML 标签，仅展示纯粹的剧情内容。扩展界面和提示内容均为中文。
+> **English** · A SillyTavern extension that adds a draggable floating status bar for tracking character states (HP, MP, gold, …). Before each generation it injects the current states as a system note, so the AI replies with only the changed values as `<name>value</name>` XML tags; the extension parses them back into the status bar and hides the tags from the chat. States are stored per chat, and one-click buttons convert them to/from World Info entries.
+>
+> The UI and the injected prompt are bilingual (中文 / English) and follow the SillyTavern interface language by default; a fixed language can be picked in the extension settings.
+>
+> 中文说明见下 / Chinese documentation below.
+
+**SillyTavern-state** 扩展为 SillyTavern 添加了悬浮状态栏界面，用于管理角色的各类状态（如生命值、法力值、金币等）。每次用户发送消息前，扩展都会将当前状态作为系统提示插入，对 AI 的回复进行引导，使其参考这些状态并 **仅输出发生变化的状态项**（以 XML 标签格式呈现）。当 AI 回复包含状态标签时，扩展会自动解析并更新状态栏，同时从聊天消息中移除这些 XML 标签，仅展示纯粹的剧情内容。扩展界面和注入提示均支持中文与英文（默认跟随 SillyTavern 界面语言，也可在扩展设置中固定选择）。
 
 ## 功能特色
 
