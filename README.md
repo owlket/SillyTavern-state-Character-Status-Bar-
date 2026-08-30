@@ -11,6 +11,16 @@ A SillyTavern extension that adds a draggable floating status bar for tracking c
 - Themes are built on CSS variables, so the **opacity / glow sliders keep working in every theme** — each theme only re-tints the palette.
 - Fully bilingual: theme names and the dropdown label are translated in both English and 中文.
 
+#### Theme previews
+
+| RPG · Parchment | Cyber · Silver | Matrix · Terminal |
+| :---: | :---: | :---: |
+| ![RPG · parchment scroll theme](docs/themes/theme-rpg.png) | ![Cyber · silver chrome theme](docs/themes/theme-cyber.png) | ![Matrix · terminal green theme](docs/themes/theme-matrix.png) |
+
+| Amber · Retro CRT | Sakura · Soft Pink |
+| :---: | :---: |
+| ![Amber · retro CRT theme](docs/themes/theme-amber.png) | ![Sakura · soft pink theme](docs/themes/theme-sakura.png) |
+
 ### v1.4.0 — polished panel & mobile support
 - **Editing-mode emphasis**: while editing, the panel background deepens with a **dark drop shadow**, so it clearly stands out from the page underneath.
 - **Live appearance sliders**: editing mode now includes **panel opacity** and **glow / shadow intensity** sliders right inside the panel — drag them and watch the panel change in real time; your choice is saved automatically and restored on reload.
