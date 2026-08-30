@@ -27,7 +27,7 @@ Release workflow: `node --check index.js` → bump `manifest.json` version → c
 
 ### 1. Settings (`index.js` top, ~lines 3–160)
 
-- `STATE_EXT_DEFAULT_SETTINGS` — defaults: `enabled`, `autoInjectPrompt`, `stripTagsFromChat`, `customInstruction`, `language` (`auto`/`zh`/`en`), `panelOpacity` (0.1–1), `panelGlow` (0–1).
+- `STATE_EXT_DEFAULT_SETTINGS` — defaults: `enabled`, `autoInjectPrompt`, `stripTagsFromChat`, `customInstruction`, `language` (`auto`/`zh`/`en`), `panelOpacity` (0.1–1), `panelGlow` (0–1), `panelTheme` (one of `STATE_EXT_THEMES`).
 - `stateExtGetSettingsContainer()` — resolves where settings live: `SillyTavern.getContext().extensionSettings` (official API, always present) → legacy `globalThis.extension_settings` → in-memory `globalThis.stateExtMemorySettings` fallback (session-only, but live updates still apply). **Never read `extension_settings` directly.**
 - `stateExtSaveSettings()` — persists via `context.saveSettingsDebounced()` (official API) → legacy globals.
 - `stateExtEnsureSettings()` / `stateExtUpdateSettings(partial)` / `stateExtResetSettings()` — merge-with-defaults / update-apply-persist / restore defaults. Update and reset always re-apply runtime settings, even on the in-memory fallback.
@@ -72,6 +72,7 @@ Created imperatively in `index.js` (no HTML file for the panel):
 - All show/hide logic is pure CSS in `style.css` (rules keyed on `#stateExtPanel:not(.editing)` / `.editing`) — JS never toggles individual controls.
 - Edit mode also gets deepened background + dark shadow (`#stateExtPanel.editing` in `style.css`).
 - Panel opacity / glow are **live-adjustable** via two sliders inside `#stateExtEditArea` (edit mode only): slider `input` events → `stateExtUpdateSettings({ panelOpacity / panelGlow })` → `applyAppearance()` writes the CSS vars `--stateext-opacity`, `--stateext-glow`, `--stateext-shadow` on the panel element; `style.css` consumes them with `var(...)` fallbacks. Persisted like any other setting; "Restore defaults" resets them.
+- **Color themes** (`panelTheme` setting, `STATE_EXT_THEMES` = `default`/`rpg`/`cyber`/`matrix`/`amber`/`sakura`): the `#stateExtThemeSelect` dropdown in `#stateExtAppearance` → `stateExtUpdateSettings({ panelTheme })` → `applyAppearance()` validates the id and sets `panel.dataset.theme`. All panel colors are CSS vars on `#stateExtPanel` whose fallbacks are the default neon scheme; each non-default theme is a `#stateExtPanel[data-theme="…"]` var-override block at the bottom of `style.css`. Backgrounds are stored as RGB triplets (`--stateext-bg-rgb` / `--stateext-edit-bg-rgb`) so `--stateext-opacity` composes in every theme. **To add a theme:** add the id to `STATE_EXT_THEMES`, add an `<option>` + both i18n strings (`themeXxx`), and add one var-override block in `style.css`.
 - **To hide/show something per mode, write a CSS rule — don't touch JS.**
 
 ### 6. Dragging (mouse + touch, ~lines 400–440)
@@ -116,6 +117,7 @@ Then hard-refresh the browser tab (**Ctrl+F5**) — SillyTavern caches extension
 | 1.4.0 | `0ad0354` | Edit-mode opaque bg + shadow; mobile: touch drag, vertical edge toggle button |
 | 1.4.0 | `fe15455` | Live panel opacity + glow/shadow sliders in edit mode (CSS vars `--stateext-*`) |
 | 1.4.0 | `357b541` | Fix: settings via official context APIs (+ in-memory fallback), guarded init stages, `saveMeta()`, chat-history retro-scan recovers unprocessed state tags |
+| 1.4.0 | `7a0c439` | Color themes dropdown (default/rpg/cyber/matrix/amber/sakura); panel palette refactored to `--stateext-*` CSS vars with per-theme `data-theme` overrides |
 
 ## Known limitations / future ideas
 
