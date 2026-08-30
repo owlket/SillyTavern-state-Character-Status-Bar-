@@ -28,9 +28,10 @@ Release workflow: `node --check index.js` → bump `manifest.json` version → c
 ### 1. Settings (`index.js` top, ~lines 3–160)
 
 - `STATE_EXT_DEFAULT_SETTINGS` — defaults: `enabled`, `autoInjectPrompt`, `stripTagsFromChat`, `customInstruction`, `language` (`auto`/`zh`/`en`), `panelOpacity` (0.1–1), `panelGlow` (0–1).
-- `stateExtEnsureSettings()` — merges stored settings with defaults. Uses SillyTavern's `extension_settings` API when available, falls back to an in-memory copy.
-- `stateExtPersistSettings()` — writes via `context.extensionSettings[KEY] = settings` + `context.saveSettingsDebounced()`.
-- `applyRuntimeSettings(settings)` (on `globalThis.stateExt`) — re-applies language + panel appearance (`applyAppearance()`) + updates toggle button label live. Called by `stateExtApplyAndPersist()` after every settings change and by the settings panel init.
+- `stateExtGetSettingsContainer()` — resolves where settings live: `SillyTavern.getContext().extensionSettings` (official API, always present) → legacy `globalThis.extension_settings` → in-memory `globalThis.stateExtMemorySettings` fallback (session-only, but live updates still apply). **Never read `extension_settings` directly.**
+- `stateExtSaveSettings()` — persists via `context.saveSettingsDebounced()` (official API) → legacy globals.
+- `stateExtEnsureSettings()` / `stateExtUpdateSettings(partial)` / `stateExtResetSettings()` — merge-with-defaults / update-apply-persist / restore defaults. Update and reset always re-apply runtime settings, even on the in-memory fallback.
+- `applyRuntimeSettings(settings)` (on `globalThis.stateExt`) — re-applies language + panel appearance (`applyAppearance()`) + updates toggle button label live. Called by `stateExtUpdateSettings()`/`stateExtResetSettings()` after every settings change and by the settings panel init. Each stage is wrapped in try/catch so one failure can't break the rest of init; errors are logged with the `[Character Status]` prefix.
 - **To add a new setting:** add a default → add a control in `index.html` → wire it in `initExtensionSettingsPanel()` (~line 540) → read it via `getCurrentSettings()`.
 
 ### 2. Bilingual i18n (~lines 16–160)
@@ -44,8 +45,8 @@ Release workflow: `node --check index.js` → bump `manifest.json` version → c
 ### 3. State storage (per chat)
 
 - States live in `chatMetadata['sillyTavernState']` — an array of `{ name, value }`.
-- `getStateList()` / `saveMetadata()` read/write it; each chat is fully isolated.
-- `CHAT_CHANGED` event → reload `stateList` + `refreshListUI()`.
+- `getStateList()` reads it; `saveMeta()` persists it (wraps `context.saveMetadata` with a `saveMetadataDebounced` fallback; failures are logged, never thrown into parsing/UI code). Each chat is fully isolated.
+- `CHAT_CHANGED` event → reload `stateList` + **retro-scan** every AI message for unprocessed state tags (recovers stats from imported chats or messages received while the extension was broken/disabled) + `refreshListUI()`. Also runs once at page load.
 - States are **not** written to character cards or World Info automatically (Export/Import buttons do that manually via clipboard).
 
 ### 4. Floating panel DOM (~lines 258–360)
@@ -81,9 +82,9 @@ Created imperatively in `index.js` (no HTML file for the panel):
 
 ### 7. AI reply parsing (~lines 650–690)
 
-- `MESSAGE_RECEIVED` handler: regex `/<([^/>]+)>([^<]+)<\/\1>/g` matches `<Name>value</Name>` tags in the last AI message.
-- Matched names update existing states; unknown names append new states; then `saveMetadata()` + `refreshListUI()`.
-- If `stripTagsFromChat` is on, all tag pairs are stripped from the displayed message.
+- Shared `processStateTagsInMessage(msg)`: regex `/<([^/>]+)>([^<]+)<\/\1>/g` matches `<Name>value</Name>` tags. Matched names update existing states; unknown names append new states. If `stripTagsFromChat` is on, all tag pairs are stripped from `msg.mes`. Returns whether anything changed.
+- `MESSAGE_RECEIVED` handler → process the last AI message → `saveMeta()` + `refreshListUI()` when changed. Wrapped in try/catch (logs `[Character Status]` errors).
+- `CHAT_CHANGED` handler → retro-scan the whole history with the same function (see §3), so old unprocessed tags are collected and stripped too. Stripped history messages re-render clean on the next chat reload.
 
 ### 8. Prompt injection (bottom of `index.js`)
 
@@ -114,6 +115,7 @@ Then hard-refresh the browser tab (**Ctrl+F5**) — SillyTavern caches extension
 | 1.3.0 | `545912a` | Compact view mode + Edit/Done mode toggle |
 | 1.4.0 | `0ad0354` | Edit-mode opaque bg + shadow; mobile: touch drag, vertical edge toggle button |
 | 1.4.0 | `fe15455` | Live panel opacity + glow/shadow sliders in edit mode (CSS vars `--stateext-*`) |
+| 1.4.0 | `357b541` | Fix: settings via official context APIs (+ in-memory fallback), guarded init stages, `saveMeta()`, chat-history retro-scan recovers unprocessed state tags |
 
 ## Known limitations / future ideas
 

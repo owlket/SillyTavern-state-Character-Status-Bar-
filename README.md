@@ -11,6 +11,8 @@ A SillyTavern extension that adds a draggable floating status bar for tracking c
 - **Live appearance sliders**: editing mode now includes **panel opacity** and **glow / shadow intensity** sliders right inside the panel — drag them and watch the panel change in real time; your choice is saved automatically and restored on reload.
 - **Mobile touch drag**: the panel can now be dragged by its title bar on touch screens — no longer mouse-only.
 - **Subtle mobile toggle button**: on small screens the `States` button becomes a slim **vertical tab** hugging the right edge, staying out of the way during roleplay.
+- **Self-healing stats**: on chat load the extension retro-scans the chat history for unprocessed state tags (messages received while the extension was disabled/broken, or imported chats), restores them into the panel, and strips the tags — no more empty status bars or leaked `<tag>` text.
+- **Hardened settings layer**: settings now go through SillyTavern's official `getContext().extensionSettings` / `saveSettingsDebounced` APIs with graceful fallbacks, so the sliders and settings toggles keep working even on builds where the legacy globals are unavailable.
 
 ### v1.3.0 — compact view mode & editing mode
 - **Normal (view) mode**: the status window now opens as a clean, compact read-only list — just the state names/values and a single **Edit** button at the bottom. No buttons cluttering every row.
