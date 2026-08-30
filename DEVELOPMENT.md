@@ -2,7 +2,7 @@
 
 Internal architecture notes for anyone amending this fork. For user-facing docs see [README.md](README.md).
 
-> **Line numbers below are approximate** (v1.4.0) and will drift as the file is edited — search for the symbol name instead of trusting the number.
+> **Line numbers below are approximate** (v1.5.0) and will drift as the file is edited — search for the symbol name instead of trusting the number.
 
 ## Repository layout
 
@@ -117,7 +117,7 @@ Then hard-refresh the browser tab (**Ctrl+F5**) — SillyTavern caches extension
 | 1.4.0 | `0ad0354` | Edit-mode opaque bg + shadow; mobile: touch drag, vertical edge toggle button |
 | 1.4.0 | `fe15455` | Live panel opacity + glow/shadow sliders in edit mode (CSS vars `--stateext-*`) |
 | 1.4.0 | `357b541` | Fix: settings via official context APIs (+ in-memory fallback), guarded init stages, `saveMeta()`, chat-history retro-scan recovers unprocessed state tags |
-| 1.4.0 | `7a0c439` | Color themes dropdown (default/rpg/cyber/matrix/amber/sakura); panel palette refactored to `--stateext-*` CSS vars with per-theme `data-theme` overrides |
+| 1.5.0 | `7a0c439` | Color themes dropdown (default/rpg/cyber/matrix/amber/sakura); panel palette refactored to `--stateext-*` CSS vars with per-theme `data-theme` overrides |
 
 ## Known limitations / future ideas
 

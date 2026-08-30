@@ -6,10 +6,14 @@ A SillyTavern extension that adds a draggable floating status bar for tracking c
 
 ## What's new in this fork
 
+### v1.5.0 — panel color themes
+- **Panel color themes**: a theme dropdown in editing mode restyles the whole panel — **Default** (neon), **RPG** (parchment scroll), **Cyber** (silver chrome), **Matrix** (terminal green), **Amber** (retro CRT), **Sakura** (soft pink). The theme applies instantly in both view and editing mode, persists across reloads, and every theme keeps text high-contrast and readable.
+- Themes are built on CSS variables, so the **opacity / glow sliders keep working in every theme** — each theme only re-tints the palette.
+- Fully bilingual: theme names and the dropdown label are translated in both English and 中文.
+
 ### v1.4.0 — polished panel & mobile support
 - **Editing-mode emphasis**: while editing, the panel background deepens with a **dark drop shadow**, so it clearly stands out from the page underneath.
 - **Live appearance sliders**: editing mode now includes **panel opacity** and **glow / shadow intensity** sliders right inside the panel — drag them and watch the panel change in real time; your choice is saved automatically and restored on reload.
-- **Panel color themes**: a theme dropdown in editing mode restyles the whole panel — **Default** (neon), **RPG** (parchment scroll), **Cyber** (silver chrome), **Matrix** (terminal green), **Amber** (retro CRT), **Sakura** (soft pink). Every theme keeps text high-contrast and readable, and works together with the opacity/glow sliders.
 - **Mobile touch drag**: the panel can now be dragged by its title bar on touch screens — no longer mouse-only.
 - **Subtle mobile toggle button**: on small screens the `States` button becomes a slim **vertical tab** hugging the right edge, staying out of the way during roleplay.
 - **Self-healing stats**: on chat load the extension retro-scans the chat history for unprocessed state tags (messages received while the extension was disabled/broken, or imported chats), restores them into the panel, and strips the tags — no more empty status bars or leaked `<tag>` text.
@@ -63,6 +67,7 @@ After installation the client loads the extension automatically. If it doesn't, 
 - **Add states**: in the multi-line text box, enter one or more states in `Name Value` format (one per line), then click **Add**. Each line is parsed in batch; if a name matches an existing item, its value is updated instead.
 - **Edit a state**: click **Edit** next to an item to make it editable. Change the name or value, then click **Save** to apply or **Cancel** to discard. If you rename an item, make sure it doesn't clash with another existing name.
 - **Delete a state**: click **Delete** next to an item to remove it.
+- **Appearance**: use the **theme dropdown** (Default / RPG / Cyber / Matrix / Amber / Sakura) and the **panel opacity** / **glow / shadow** sliders in the appearance section to restyle the panel — changes apply instantly in both view and editing mode and are saved automatically.
 
 Click **Done** at the bottom to return to the compact view mode.
 
@@ -156,4 +161,4 @@ Through this flow, SillyTavern-state makes character-state management effortless
 ## Credits
 
 - Original extension: **[ThirteenthMonth/SillyTavern-state](https://github.com/ThirteenthMonth/SillyTavern-state)** — all features and design are theirs.
-- This fork: adds the bilingual English/中文 UI and prompt injection (v1.2.0), the compact view/editing panel modes (v1.3.0), and editing-mode styling with live opacity/glow sliders, mobile touch-drag and the vertical toggle button (v1.4.0). If you prefer the original Chinese-only release, use the upstream repo — the core state-tracking behavior is the same.
+- This fork: adds the bilingual English/中文 UI and prompt injection (v1.2.0), the compact view/editing panel modes (v1.3.0), editing-mode styling with live opacity/glow sliders, mobile touch-drag and the vertical toggle button (v1.4.0), and the panel color themes (v1.5.0). If you prefer the original Chinese-only release, use the upstream repo — the core state-tracking behavior is the same.
