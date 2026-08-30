@@ -361,6 +361,11 @@ function stateExtResetSettings() {
             <button id="stateExtDoneBtn" data-stateext-i18n="doneButton"></button>
         </div>
     `;
+    // 显式设置初始内联 display：CSS 里的 display:none 不会反映到 style.display（为 ''），
+    // 否则第一次点击会把 '' 当成“已显示”而设置成 'none'，表现为“第一下点击没反应”（移动端尤其明显）。
+    // Explicit initial inline display: the stylesheet's display:none leaves style.display as '',
+    // so the first tap used to set 'none' again and look like it did nothing (notably on mobile).
+    panel.style.display = 'none';
     document.body.appendChild(panel);
 
     globalThis.stateExt.toggleBtn = toggleBtn;
@@ -527,12 +532,13 @@ function stateExtResetSettings() {
     }
     refreshListUI();
 
-    // 悬浮按钮：点击切换面板显隐
+    // 悬浮按钮：点击切换面板显隐（用计算样式判断，兼容仅由 CSS 隐藏的情况）
     toggleBtn.addEventListener('click', () => {
         if (!getCurrentSettings().enabled) {
             return;
         }
-        panel.style.display = (panel.style.display === 'none' ? 'block' : 'none');
+        const isHidden = getComputedStyle(panel).display === 'none';
+        panel.style.display = isHidden ? 'block' : 'none';
     });
 
     // 悬浮窗拖动功能（鼠标 + 触屏）/ Draggable panel (mouse + touch)

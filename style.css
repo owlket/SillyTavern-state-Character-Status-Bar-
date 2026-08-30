@@ -114,7 +114,12 @@
         right: 0;
         writing-mode: vertical-rl;
         letter-spacing: 2px;
-        padding: 10px 4px;
+        padding: 12px 6px;
+        /* 加大触控热区并避免双击缩放延迟 / bigger tap target, no double-tap delay */
+        min-width: 30px;
+        min-height: 72px;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
         border-right: none;
         border-radius: 6px 0 0 6px;
         font-size: 10px;
