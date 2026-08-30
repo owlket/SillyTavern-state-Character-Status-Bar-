@@ -11,7 +11,12 @@ const STATE_EXT_DEFAULT_SETTINGS = {
     // Panel appearance, live-adjustable via sliders in editing mode
     panelOpacity: 0.95,
     panelGlow: 1,
+    // Color theme: one of STATE_EXT_THEMES
+    panelTheme: 'default',
 };
+
+// Available panel color themes (value = the panel's data-theme attribute)
+const STATE_EXT_THEMES = ['default', 'rpg', 'cyber', 'matrix', 'amber', 'sakura'];
 
 // ---------------------------------------------------------------------------
 // Bilingual (中文 / English) string table
@@ -57,6 +62,13 @@ const STATE_EXT_STRINGS = {
         settingRestore: '恢复默认设置',
         appearanceOpacity: '面板不透明度',
         appearanceGlow: '发光 / 阴影强度',
+        appearanceTheme: '主题配色',
+        themeDefault: '默认 · 霓虹夜',
+        themeRpg: 'RPG · 羊皮卷',
+        themeCyber: '赛博 · 银铬',
+        themeMatrix: '矩阵 · 终端绿',
+        themeAmber: '复古 · 琥珀屏',
+        themeSakura: '樱花 · 柔粉',
     },
     en: {
         toggleButton: 'States',
@@ -98,6 +110,13 @@ const STATE_EXT_STRINGS = {
         settingRestore: 'Restore defaults',
         appearanceOpacity: 'Panel opacity',
         appearanceGlow: 'Glow / shadow',
+        appearanceTheme: 'Color theme',
+        themeDefault: 'Default · Neon',
+        themeRpg: 'RPG · Parchment',
+        themeCyber: 'Cyber · Silver',
+        themeMatrix: 'Matrix · Terminal',
+        themeAmber: 'Amber · CRT',
+        themeSakura: 'Sakura · Pink',
     },
 };
 
@@ -315,6 +334,17 @@ function stateExtResetSettings() {
             <button id="stateExtImpBtn" data-stateext-i18n="impButton"></button>
             <div id="stateExtAppearance">
                 <div class="appearance-row">
+                    <span class="appearance-label" data-stateext-i18n="appearanceTheme"></span>
+                    <select id="stateExtThemeSelect">
+                        <option value="default" data-stateext-i18n="themeDefault"></option>
+                        <option value="rpg" data-stateext-i18n="themeRpg"></option>
+                        <option value="cyber" data-stateext-i18n="themeCyber"></option>
+                        <option value="matrix" data-stateext-i18n="themeMatrix"></option>
+                        <option value="amber" data-stateext-i18n="themeAmber"></option>
+                        <option value="sakura" data-stateext-i18n="themeSakura"></option>
+                    </select>
+                </div>
+                <div class="appearance-row">
                     <span class="appearance-label" data-stateext-i18n="appearanceOpacity"></span>
                     <input type="range" id="stateExtOpacityRange" min="10" max="100" step="1" />
                     <span class="appearance-value" id="stateExtOpacityVal"></span>
@@ -359,6 +389,15 @@ function stateExtResetSettings() {
         });
     }
 
+    // 主题下拉：切换面板配色方案（随其他设置一并保存）
+    // Theme dropdown: switch panel color scheme (persisted like any other setting)
+    const themeSelect = panel.querySelector('#stateExtThemeSelect');
+    if (themeSelect) {
+        themeSelect.addEventListener('change', () => {
+            stateExtUpdateSettings({ panelTheme: themeSelect.value });
+        });
+    }
+
     // 根据当前语言设置刷新所有界面文本 / Re-apply all UI texts for the current language
     function applyLanguageToUI() {
         toggleBtn.textContent = stateExtT('toggleButton');
@@ -379,6 +418,13 @@ function stateExtResetSettings() {
     // 将外观设置（不透明度 / 发光强度）写入面板的 CSS 变量，并同步滑杆位置与百分比显示
     // Apply appearance settings to the panel's CSS variables and sync the sliders + % labels
     function applyAppearance(config) {
+        // 主题：写入 data-theme 属性，style.css 按主题覆盖配色变量；同时同步下拉框选中项
+        // Theme: set data-theme (style.css overrides the palette vars per theme) + sync the dropdown
+        const theme = STATE_EXT_THEMES.includes(config.panelTheme) ? config.panelTheme : 'default';
+        panel.dataset.theme = theme;
+        const themeSelectEl = panel.querySelector('#stateExtThemeSelect');
+        if (themeSelectEl) themeSelectEl.value = theme;
+
         const opacity = Math.min(1, Math.max(0.1, Number(config.panelOpacity ?? 0.95)));
         const glow = Math.min(1, Math.max(0, Number(config.panelGlow ?? 1)));
         panel.style.setProperty('--stateext-opacity', opacity.toFixed(2));

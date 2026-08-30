@@ -27,18 +27,20 @@
     right: 10px;
     z-index: 9999;
     display: none;
-    /* 不透明度由 --stateext-opacity 控制（编辑模式滑杆实时调整）
-       Opacity driven by --stateext-opacity (live slider in edit mode) */
-    background: rgba(20, 20, 40, var(--stateext-opacity, 0.95));
-    color: #fff;
+    /* 不透明度由 --stateext-opacity 控制（编辑模式滑杆实时调整）；
+       配色由 --stateext-* 变量控制，主题（data-theme）覆盖这些变量。
+       Opacity driven by --stateext-opacity (live slider in edit mode);
+       palette driven by --stateext-* vars, overridden per theme (data-theme). */
+    background: rgba(var(--stateext-bg-rgb, 20, 20, 40), var(--stateext-opacity, 0.95));
+    color: var(--stateext-text, #fff);
     padding: 10px;
-    border: 1px solid #00f0ff;
+    border: 1px solid var(--stateext-border, #00f0ff);
     border-radius: 6px;
     max-width: 300px;
     max-height: 400px;
     overflow-y: auto;
     /* 发光强度由 --stateext-glow 控制 / Glow intensity via --stateext-glow */
-    box-shadow: 0 0 12px rgba(0, 240, 255, var(--stateext-glow, 1));
+    box-shadow: 0 0 12px rgba(var(--stateext-glow-rgb, 0, 240, 255), var(--stateext-glow, 1));
     font-size: 12px;
     font-family: 'Orbitron', 'Courier New', monospace;
 }
@@ -48,7 +50,7 @@
     font-weight: bold;
     cursor: move;
     margin-bottom: 8px;
-    color: #ff0080;
+    color: var(--stateext-header, #ff0080);
 }
 
 /* 状态列表样式 */
@@ -59,17 +61,17 @@
 }
 #stateExtPanel li {
     margin-bottom: 6px;
-    border-bottom: 1px solid #333;
+    border-bottom: 1px solid var(--stateext-divider, #333);
     padding-bottom: 3px;
 }
 #stateExtPanel .state-name {
     font-weight: bold;
-    color: #00f0ff;
+    color: var(--stateext-name, #00f0ff);
     display: block;
 }
 #stateExtPanel .state-value {
     margin-left: 0;
-    color: #fffb00;
+    color: var(--stateext-value, #fffb00);
     display: block;
 }
 
@@ -79,28 +81,28 @@
     margin-right: 4px;
     box-sizing: border-box;
     font-size: 12px;
-    background: #111;
-    color: #00f0ff;
-    border: 1px solid #00f0ff;
+    background: var(--stateext-input-bg, #111);
+    color: var(--stateext-input-text, #00f0ff);
+    border: 1px solid var(--stateext-border, #00f0ff);
 }
 #stateExtPanel button {
     margin: 2px 4px 2px 0;
     padding: 4px 8px;
     cursor: pointer;
     font-size: 12px;
-    background: linear-gradient(90deg, #ff0080, #00f0ff);
-    color: #fff;
+    background: var(--stateext-btn-bg, linear-gradient(90deg, #ff0080, #00f0ff));
+    color: var(--stateext-btn-text, #fff);
     border: none;
-    box-shadow: 0 0 6px #ff0080;
+    box-shadow: var(--stateext-btn-shadow, 0 0 6px #ff0080);
 }
 #stateExtPanel textarea {
     width: 100%;
     box-sizing: border-box;
     margin-bottom: 4px;
     font-size: 12px;
-    background: #111;
-    color: #00f0ff;
-    border: 1px solid #00f0ff;
+    background: var(--stateext-input-bg, #111);
+    color: var(--stateext-input-text, #00f0ff);
+    border: 1px solid var(--stateext-border, #00f0ff);
 }
 
 @media (max-width: 600px) {
@@ -136,7 +138,8 @@
 
     #stateExtPanel input[type="text"],
     #stateExtPanel button,
-    #stateExtPanel textarea {
+    #stateExtPanel textarea,
+    #stateExtPanel select {
         font-size: 10px;
     }
 }
@@ -160,8 +163,8 @@
 /* 编辑模式视觉强调：背景变为不透明 + 面板四周加深色阴影
    Edit mode emphasis: opaque background + dark shadow around the panel */
 #stateExtPanel.editing {
-    background: rgba(20, 20, 30, var(--stateext-opacity, 0.95));
-    box-shadow: 0 0 25px 8px rgba(0, 0, 0, var(--stateext-shadow, 0.85)), 0 0 5px rgba(0, 240, 255, var(--stateext-glow, 1));
+    background: rgba(var(--stateext-edit-bg-rgb, 20, 20, 30), var(--stateext-opacity, 0.95));
+    box-shadow: 0 0 25px 8px rgba(var(--stateext-shadow-rgb, 0, 0, 0), var(--stateext-shadow, 0.85)), 0 0 5px rgba(var(--stateext-glow-rgb, 0, 240, 255), var(--stateext-glow, 1));
     z-index: 10001;
 }
 
@@ -170,7 +173,7 @@
 #stateExtAppearance {
     margin-top: 8px;
     padding-top: 6px;
-    border-top: 1px dashed rgba(0, 255, 255, 0.4);
+    border-top: 1px dashed var(--stateext-dash, rgba(0, 255, 255, 0.4));
 }
 #stateExtAppearance .appearance-row {
     display: flex;
@@ -180,27 +183,39 @@
 }
 #stateExtAppearance .appearance-label {
     flex: 0 0 auto;
-    color: #00f0ff;
+    color: var(--stateext-name, #00f0ff);
+}
+#stateExtAppearance select {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 2px 4px;
+    font-size: 12px;
+    font-family: inherit;
+    background: var(--stateext-input-bg, #111);
+    color: var(--stateext-input-text, #00f0ff);
+    border: 1px solid var(--stateext-border, #00f0ff);
+    border-radius: 4px;
+    cursor: pointer;
 }
 #stateExtAppearance input[type="range"] {
     flex: 1 1 auto;
     min-width: 0;
     height: 14px;
     padding: 0;
-    accent-color: #ff0080;
+    accent-color: var(--stateext-accent, #ff0080);
     cursor: pointer;
 }
 #stateExtAppearance .appearance-value {
     flex: 0 0 34px;
     text-align: right;
-    color: #fffb00;
+    color: var(--stateext-value, #fffb00);
 }
 
 /* 底部模式切换按钮行 / Footer row holding the mode toggle button */
 #stateExtFooter {
     margin-top: 6px;
     padding-top: 6px;
-    border-top: 1px dashed rgba(0, 255, 255, 0.4);
+    border-top: 1px dashed var(--stateext-dash, rgba(0, 255, 255, 0.4));
     text-align: center;
 }
 
@@ -212,4 +227,116 @@
 #stateExtPanel:not(.editing) #stateExtList .state-name,
 #stateExtPanel:not(.editing) #stateExtList .state-value {
     display: inline;
+}
+
+/* ================= 主题配色 Color themes (panel[data-theme]) ================= */
+/* “default” 主题 = 上方各变量的回退值（霓虹配色），无需额外规则。
+   每个主题仅覆盖 --stateext-* 变量；背景存为 RGB 三元组，因此不透明度滑杆在所有主题下都有效。
+   The "default" theme = the var fallbacks above (neon scheme), no rules needed.
+   Each theme only overrides the --stateext-* vars; backgrounds are RGB triplets,
+   so the opacity slider keeps working in every theme. */
+
+/* RPG · 羊皮卷 Parchment Scroll — 浅棕羊皮纸 + 深色墨水字（高对比易读） */
+#stateExtPanel[data-theme="rpg"] {
+    --stateext-bg-rgb: 230, 211, 168;
+    --stateext-edit-bg-rgb: 224, 205, 158;
+    --stateext-text: #3a2a18;
+    --stateext-header: #7a2e1d;
+    --stateext-name: #5b3a1a;
+    --stateext-value: #1f5c2d;
+    --stateext-border: #8b6b3d;
+    --stateext-glow-rgb: 255, 170, 60;
+    --stateext-shadow-rgb: 62, 42, 22;
+    --stateext-input-bg: #f0e2c0;
+    --stateext-input-text: #3a2a18;
+    --stateext-btn-bg: linear-gradient(90deg, #8b5a2b, #6b3f1d);
+    --stateext-btn-text: #f5e6c8;
+    --stateext-btn-shadow: 0 0 6px #8b5a2b;
+    --stateext-accent: #7a2e1d;
+    --stateext-divider: #b89a68;
+    --stateext-dash: rgba(139, 107, 61, 0.55);
+}
+
+/* Cyber · 银铬 Silver Chrome — 银色金属 + 近黑文字（最高对比） */
+#stateExtPanel[data-theme="cyber"] {
+    --stateext-bg-rgb: 212, 217, 224;
+    --stateext-edit-bg-rgb: 200, 206, 215;
+    --stateext-text: #14181f;
+    --stateext-header: #0057d9;
+    --stateext-name: #1f3a93;
+    --stateext-value: #c24a00;
+    --stateext-border: #7f8a99;
+    --stateext-glow-rgb: 120, 140, 170;
+    --stateext-shadow-rgb: 40, 50, 65;
+    --stateext-input-bg: #eef1f5;
+    --stateext-input-text: #14181f;
+    --stateext-btn-bg: linear-gradient(90deg, #8f9aab, #5f6b7a);
+    --stateext-btn-text: #ffffff;
+    --stateext-btn-shadow: 0 0 6px #7f8a99;
+    --stateext-accent: #0057d9;
+    --stateext-divider: #aab3bf;
+    --stateext-dash: rgba(127, 138, 153, 0.6);
+}
+
+/* Matrix · 终端绿 Terminal Green — 黑底绿字 CRT */
+#stateExtPanel[data-theme="matrix"] {
+    --stateext-bg-rgb: 5, 8, 5;
+    --stateext-edit-bg-rgb: 8, 14, 8;
+    --stateext-text: #33ff66;
+    --stateext-header: #00ff41;
+    --stateext-name: #00ff41;
+    --stateext-value: #ccff00;
+    --stateext-border: #00ff41;
+    --stateext-glow-rgb: 0, 255, 65;
+    --stateext-shadow-rgb: 0, 40, 10;
+    --stateext-input-bg: #021202;
+    --stateext-input-text: #33ff66;
+    --stateext-btn-bg: linear-gradient(90deg, #063606, #0a5c0a);
+    --stateext-btn-text: #ccffcc;
+    --stateext-btn-shadow: 0 0 6px #00ff41;
+    --stateext-accent: #00ff41;
+    --stateext-divider: #0f3d0f;
+    --stateext-dash: rgba(0, 255, 65, 0.4);
+}
+
+/* Amber · 琥珀屏 Retro Amber CRT — 黑底琥珀字，长时间阅读更柔和 */
+#stateExtPanel[data-theme="amber"] {
+    --stateext-bg-rgb: 16, 12, 4;
+    --stateext-edit-bg-rgb: 24, 18, 6;
+    --stateext-text: #ffb000;
+    --stateext-header: #ff9500;
+    --stateext-name: #ffb000;
+    --stateext-value: #ffe9b0;
+    --stateext-border: #ffb000;
+    --stateext-glow-rgb: 255, 176, 0;
+    --stateext-shadow-rgb: 60, 40, 0;
+    --stateext-input-bg: #1c1404;
+    --stateext-input-text: #ffb000;
+    --stateext-btn-bg: linear-gradient(90deg, #5c3d00, #8a5a00);
+    --stateext-btn-text: #fff3d6;
+    --stateext-btn-shadow: 0 0 6px #ffb000;
+    --stateext-accent: #ff9500;
+    --stateext-divider: #4d3800;
+    --stateext-dash: rgba(255, 176, 0, 0.4);
+}
+
+/* Sakura · 柔粉 Soft Pink — 浅粉底 + 深梅子色文字 */
+#stateExtPanel[data-theme="sakura"] {
+    --stateext-bg-rgb: 247, 227, 236;
+    --stateext-edit-bg-rgb: 243, 214, 227;
+    --stateext-text: #4a1f33;
+    --stateext-header: #c2185b;
+    --stateext-name: #ad1457;
+    --stateext-value: #6a1b9a;
+    --stateext-border: #e5a9c6;
+    --stateext-glow-rgb: 240, 150, 190;
+    --stateext-shadow-rgb: 90, 40, 60;
+    --stateext-input-bg: #fdf0f5;
+    --stateext-input-text: #4a1f33;
+    --stateext-btn-bg: linear-gradient(90deg, #d45b93, #ad1457);
+    --stateext-btn-text: #ffffff;
+    --stateext-btn-shadow: 0 0 6px #d45b93;
+    --stateext-accent: #c2185b;
+    --stateext-divider: #eec4d6;
+    --stateext-dash: rgba(194, 24, 91, 0.4);
 }
