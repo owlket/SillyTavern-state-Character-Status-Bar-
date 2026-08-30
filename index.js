@@ -18,6 +18,33 @@ const STATE_EXT_DEFAULT_SETTINGS = {
 // Available panel color themes (value = the panel's data-theme attribute)
 const STATE_EXT_THEMES = ['default', 'rpg', 'cyber', 'matrix', 'amber', 'sakura'];
 
+// Build marker used as the stylesheet cache-buster — SillyTavern loads manifest
+// CSS unversioned, and mobile browsers hold stale extension CSS for a long time.
+const STATE_EXT_BUILD = '1.5.2';
+
+// 缓存穿透：把 ST 为 manifest css 创建的 <link> 原地升级为带版本号的 URL；
+// 找不到（老版本 ST / css 被禁用）则自行注入。
+// Cache-busting: upgrade ST's manifest-css <link> in place to a versioned URL;
+// if missing (older ST / css disabled), inject our own.
+function stateExtEnsureStylesheet() {
+    try {
+        const baseUrl = new URL('.', import.meta.url).href;
+        const href = `${baseUrl}style.css?v=${STATE_EXT_BUILD}`;
+        let link = [...document.querySelectorAll('link[rel="stylesheet"]')].find(l => l.href.startsWith(baseUrl));
+        if (link) {
+            if (link.href !== href) link.href = href;
+        } else {
+            link = document.createElement('link');
+            link.id = 'stateExt-css';
+            link.rel = 'stylesheet';
+            link.href = href;
+            document.head.appendChild(link);
+        }
+    } catch (err) {
+        console.warn('[Character Status] Failed to inject cache-busted stylesheet:', err);
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Bilingual (中文 / English) string table
 // ---------------------------------------------------------------------------
@@ -252,6 +279,7 @@ function stateExtResetSettings() {
 
 (function() {
     function init() {
+        stateExtEnsureStylesheet();
         const context = SillyTavern.getContext();
         const { eventSource, event_types, saveMetadata } = context;
 

@@ -109,9 +109,12 @@
     /* 移动端：竖排贴边按钮，降低存在感
        Mobile: vertical edge-hugging button, less obtrusive */
     #stateExtToggleBtn {
-        top: 40%;
-        bottom: auto;
-        right: 0;
+        /* vh/dvh instead of %: on some mobile browsers the percentage containing
+           block misbehaves for fixed elements, pinning the tab to the top edge. */
+        top: 40vh !important;
+        top: 40dvh !important;
+        bottom: auto !important;
+        right: 0 !important;
         writing-mode: vertical-rl;
         letter-spacing: 2px;
         padding: 12px 6px;
@@ -135,7 +138,8 @@
         left: 0;
         width: 100%;
         max-width: none;
-        height: 50%;
+        height: 50vh;
+        height: 50dvh;
         max-height: none;
         border-radius: 10px 10px 0 0;
         font-size: 10px;
