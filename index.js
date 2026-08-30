@@ -135,11 +135,46 @@ function stateExtCloneDefaultSettings() {
     return JSON.parse(JSON.stringify(STATE_EXT_DEFAULT_SETTINGS));
 }
 
-function stateExtEnsureSettings() {
-    const container = globalThis.extension_settings;
-    if (!container) {
-        return stateExtCloneDefaultSettings();
+// 解析设置存储容器：优先 SillyTavern 官方 context API（始终可用），
+// 其次旧版全局变量，最后退回内存副本（仅本次会话有效，但实时调整仍然生效）。
+// Resolve the settings container: official context API first (always available),
+// then the legacy global, then an in-memory fallback (session-only, but live updates still work).
+function stateExtGetSettingsContainer() {
+    try {
+        const ctx = SillyTavern.getContext();
+        if (ctx && ctx.extensionSettings) {
+            return ctx.extensionSettings;
+        }
+    } catch (error) { /* SillyTavern context not ready yet */ }
+    if (globalThis.extension_settings) {
+        return globalThis.extension_settings;
     }
+    if (!globalThis.stateExtMemorySettings) {
+        globalThis.stateExtMemorySettings = {};
+    }
+    return globalThis.stateExtMemorySettings;
+}
+
+// 保存设置：优先 context.saveSettingsDebounced（官方 API），其次全局函数
+// Persist settings: prefer context.saveSettingsDebounced (official API), then globals
+function stateExtSaveSettings() {
+    try {
+        const ctx = SillyTavern.getContext();
+        if (ctx && typeof ctx.saveSettingsDebounced === 'function') {
+            ctx.saveSettingsDebounced();
+            return;
+        }
+    } catch (error) { /* SillyTavern context not ready yet */ }
+    if (typeof globalThis.saveSettingsDebounced === 'function') {
+        globalThis.saveSettingsDebounced();
+    } else if (typeof globalThis.saveSettings === 'function') {
+        globalThis.saveSettings();
+    }
+}
+
+
+function stateExtEnsureSettings() {
+    const container = stateExtGetSettingsContainer();
 
     const stored = container[STATE_EXT_SETTINGS_KEY];
     if (!stored) {
@@ -148,11 +183,7 @@ function stateExtEnsureSettings() {
         if (globalThis.stateExt) {
             globalThis.stateExt.settings = defaults;
         }
-        if (typeof globalThis.saveSettingsDebounced === 'function') {
-            globalThis.saveSettingsDebounced();
-        } else if (typeof globalThis.saveSettings === 'function') {
-            globalThis.saveSettings();
-        }
+        stateExtSaveSettings();
         return defaults;
     }
 
@@ -165,10 +196,7 @@ function stateExtEnsureSettings() {
 }
 
 function stateExtUpdateSettings(partial) {
-    const container = globalThis.extension_settings;
-    if (!container) {
-        return stateExtCloneDefaultSettings();
-    }
+    const container = stateExtGetSettingsContainer();
 
     const current = stateExtEnsureSettings();
     Object.assign(current, partial);
@@ -181,21 +209,15 @@ function stateExtUpdateSettings(partial) {
         }
     }
 
-    if (typeof globalThis.saveSettingsDebounced === 'function') {
-        globalThis.saveSettingsDebounced();
-    } else if (typeof globalThis.saveSettings === 'function') {
-        globalThis.saveSettings();
-    }
+    stateExtSaveSettings();
 
     return current;
 }
 
 function stateExtResetSettings() {
-    const container = globalThis.extension_settings;
+    const container = stateExtGetSettingsContainer();
     const defaults = stateExtCloneDefaultSettings();
-    if (container) {
-        container[STATE_EXT_SETTINGS_KEY] = defaults;
-    }
+    container[STATE_EXT_SETTINGS_KEY] = defaults;
 
     if (globalThis.stateExt) {
         globalThis.stateExt.settings = defaults;
@@ -204,11 +226,7 @@ function stateExtResetSettings() {
         }
     }
 
-    if (typeof globalThis.saveSettingsDebounced === 'function') {
-        globalThis.saveSettingsDebounced();
-    } else if (typeof globalThis.saveSettings === 'function') {
-        globalThis.saveSettings();
-    }
+    stateExtSaveSettings();
 
     return defaults;
 }
@@ -217,6 +235,25 @@ function stateExtResetSettings() {
     function init() {
         const context = SillyTavern.getContext();
         const { eventSource, event_types, saveMetadata } = context;
+
+        // 安全保存聊天元数据：失败只记录日志，不中断状态解析与界面刷新
+        // Safe chat-metadata persistence: failures are logged, never break parsing or UI refresh
+        function saveMeta() {
+            try {
+                if (typeof saveMetadata === 'function') {
+                    saveMetadata();
+                    return;
+                }
+            } catch (error) {
+                console.error('[Character Status] saveMetadata failed:', error);
+                return;
+            }
+            try {
+                SillyTavern.getContext().saveMetadataDebounced?.();
+            } catch (error) {
+                console.error('[Character Status] saveMetadataDebounced failed:', error);
+            }
+        }
 
         const META_KEY = 'sillyTavernState';
 
@@ -367,8 +404,9 @@ function stateExtResetSettings() {
         if (panel && !isEnabled) {
             panel.style.display = 'none';
         }
-        applyAppearance(config);
-        applyLanguageToUI();
+        // 单项失败不应拖垮整个初始化 / A failure here must not break the rest of init
+        try { applyAppearance(config); } catch (error) { console.error('[Character Status] Failed to apply appearance:', error); }
+        try { applyLanguageToUI(); } catch (error) { console.error('[Character Status] Failed to apply language:', error); }
         return config;
     }
 
@@ -423,7 +461,7 @@ function stateExtResetSettings() {
                 // 更新状态项并保存
                 item.name = newName;
                 item.value = newValue;
-                saveMetadata();
+                saveMeta();
                 // 更新列表显示
                 refreshListUI();
             };
@@ -435,7 +473,7 @@ function stateExtResetSettings() {
             // 删除按钮事件
             li.querySelector('.delete-btn').onclick = () => {
                 stateList.splice(idx, 1);
-                saveMetadata();
+                saveMeta();
                 refreshListUI();
             };
             listEl.appendChild(li);
@@ -510,7 +548,7 @@ function stateExtResetSettings() {
             modified = true;
         }
         if (modified) {
-            saveMetadata();
+            saveMeta();
             refreshListUI();
             panel.querySelector('#stateExtInput').value = '';
         }
@@ -564,7 +602,7 @@ function stateExtResetSettings() {
                 imported++;
             }
             if (imported > 0) {
-                saveMetadata();
+                saveMeta();
                 refreshListUI();
                 alert(stateExtT('alertImported', imported));
             } else {
@@ -695,28 +733,18 @@ function stateExtResetSettings() {
     eventSource.on(event_types.EXTENSION_SETTINGS_LOADED, settingsPanelListener);
     initExtensionSettingsPanel();
 
-    // 监听聊天切换事件：切换对话时更新状态列表显示
-    globalThis.stateExt.chatHandler = () => {
-        stateList = getStateList();
-        refreshListUI();
-    };
-    eventSource.on(event_types.CHAT_CHANGED, globalThis.stateExt.chatHandler);
-
-    // 监听 AI 消息接收事件：解析并应用状态更新标签
-    globalThis.stateExt.msgHandler = () => {
-        const settings = getCurrentSettings();
-        if (!settings.enabled) {
-            return;
+    // 解析单条消息中的状态标签：更新状态列表，并按设置剥离标签，返回是否有更新
+    // Process state tags in one message: update the state list, strip tags per settings.
+    function processStateTagsInMessage(msg) {
+        if (!msg || msg.is_user || !msg.mes) {
+            return false;
         }
-        const chatArr = SillyTavern.getContext().chat;
-        if (!chatArr.length) return;
-        const lastMsg = chatArr[chatArr.length - 1];
-        if (lastMsg.is_user) return;  // 确保是 AI 消息
-        let content = lastMsg.mes;
+        const settings = getCurrentSettings();
+        const content = msg.mes;
         const tagRegex = /<([^\/>]+)>([^<]+)<\/\1>/g;
         let match, updated = false;
         while ((match = tagRegex.exec(content)) !== null) {
-            const [fullMatch, name, newValue] = match;
+            const [, name, newValue] = match;
             const item = stateList.find(it => it.name === name);
             if (item) {
                 item.value = newValue;
@@ -725,14 +753,61 @@ function stateExtResetSettings() {
             }
             updated = true;
         }
-        if (updated) {
-            saveMetadata();
-            refreshListUI();
-        }
         // 移除消息中的所有状态标签，留下纯剧情文本
+        // Strip all state tags from the message, leaving pure story text
         if (updated && settings.stripTagsFromChat !== false) {
-            content = content.replace(/<[^>]+>[^<]*<\/[^>]+>/g, '').trim();
-            lastMsg.mes = content;
+            msg.mes = content.replace(/<[^>]+>[^<]*<\/[^>]+>/g, '').trim();
+        }
+        return updated;
+    }
+
+    // 监听聊天切换事件：切换对话时更新状态列表显示，
+    // 并补扫历史消息中遗漏的状态标签（例如扩展不可用时接收的、或导入的聊天），
+    // 确保状态栏能从已有聊天记录中恢复。
+    // On chat switch: refresh the list, and retro-scan history for unprocessed state tags
+    // (messages received while the extension was broken/disabled, or imported chats),
+    // so the panel recovers stats from the existing chat log.
+    globalThis.stateExt.chatHandler = () => {
+        stateList = getStateList();
+        try {
+            const settings = getCurrentSettings();
+            if (settings.enabled !== false) {
+                const chatArr = SillyTavern.getContext().chat || [];
+                let updated = false;
+                for (const msg of chatArr) {
+                    if (processStateTagsInMessage(msg)) {
+                        updated = true;
+                    }
+                }
+                if (updated) {
+                    saveMeta();
+                }
+            }
+        } catch (error) {
+            console.error('[Character Status] Failed to scan chat history for state tags:', error);
+        }
+        refreshListUI();
+    };
+    eventSource.on(event_types.CHAT_CHANGED, globalThis.stateExt.chatHandler);
+    // 页面加载时若已有打开的聊天，立即补扫一次 / Scan immediately if a chat is already open
+    globalThis.stateExt.chatHandler();
+
+    // 监听 AI 消息接收事件：解析并应用状态更新标签
+    globalThis.stateExt.msgHandler = () => {
+        try {
+            const settings = getCurrentSettings();
+            if (!settings.enabled) {
+                return;
+            }
+            const chatArr = SillyTavern.getContext().chat;
+            if (!chatArr.length) return;
+            const lastMsg = chatArr[chatArr.length - 1];
+            if (processStateTagsInMessage(lastMsg)) {
+                saveMeta();
+                refreshListUI();
+            }
+        } catch (error) {
+            console.error('[Character Status] Failed to process state tags:', error);
         }
     };
     eventSource.on(event_types.MESSAGE_RECEIVED, globalThis.stateExt.msgHandler);
