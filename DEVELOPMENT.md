@@ -118,6 +118,7 @@ Then hard-refresh the browser tab (**Ctrl+F5**) — SillyTavern caches extension
 | 1.4.0 | `fe15455` | Live panel opacity + glow/shadow sliders in edit mode (CSS vars `--stateext-*`) |
 | 1.4.0 | `357b541` | Fix: settings via official context APIs (+ in-memory fallback), guarded init stages, `saveMeta()`, chat-history retro-scan recovers unprocessed state tags |
 | 1.5.0 | `7a0c439` | Color themes dropdown (default/rpg/cyber/matrix/amber/sakura); panel palette refactored to `--stateext-*` CSS vars with per-theme `data-theme` overrides |
+| 1.5.0 | `9f2d196` | Release: manifest version bump to 1.5.0 + README/DEVELOPMENT docs for the theme feature |
 
 ## Known limitations / future ideas
 
