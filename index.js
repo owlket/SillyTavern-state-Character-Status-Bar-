@@ -20,7 +20,7 @@ const STATE_EXT_THEMES = ['default', 'rpg', 'cyber', 'matrix', 'amber', 'sakura'
 
 // Build marker used as the stylesheet cache-buster — SillyTavern loads manifest
 // CSS unversioned, and mobile browsers hold stale extension CSS for a long time.
-const STATE_EXT_BUILD = '1.5.2';
+const STATE_EXT_BUILD = '1.5.3';
 
 // 缓存穿透：把 ST 为 manifest css 创建的 <link> 原地升级为带版本号的 URL；
 // 找不到（老版本 ST / css 被禁用）则自行注入。
@@ -53,6 +53,7 @@ const STATE_EXT_STRINGS = {
         toggleButton: '状态栏',
         panelTitle: '角色状态栏',
         batchPlaceholder: '每行输入 状态名 和 值',
+        emptyStates: '暂无状态记录。面板已打开——当 AI 输出 <状态名>值</状态名> 标签时，状态会显示在这里。',
         addButton: '添加',
         genButton: '生成世界书条目',
         impButton: '从世界书提取',
@@ -101,6 +102,7 @@ const STATE_EXT_STRINGS = {
         toggleButton: 'States',
         panelTitle: 'Character Status',
         batchPlaceholder: 'One per line: Name Value',
+        emptyStates: 'No states tracked yet. The panel is open — states appear here when the AI outputs <name>value</name> tags.',
         addButton: 'Add',
         genButton: 'Export to World Info',
         impButton: 'Import from World Info',
@@ -387,6 +389,7 @@ function stateExtResetSettings() {
         <div id="stateExtFooter">
             <button id="stateExtEditModeBtn" data-stateext-i18n="editButton"></button>
             <button id="stateExtDoneBtn" data-stateext-i18n="doneButton"></button>
+            <span id="stateExtBuildTag"></span>
         </div>
     `;
     // 显式设置初始内联 display：CSS 里的 display:none 不会反映到 style.display（为 ''），
@@ -395,6 +398,11 @@ function stateExtResetSettings() {
     // so the first tap used to set 'none' again and look like it did nothing (notably on mobile).
     panel.style.display = 'none';
     document.body.appendChild(panel);
+    // 版本角标：移动端没有控制台时也能确认加载的是哪个构建（缓存排查用）。
+    // 不放在 [data-stateext-i18n] 元素里，否则 applyLanguageToUI() 会用 textContent 把它抹掉。
+    // Version badge: lets mobile users confirm which build is loaded (cache debugging).
+    // Kept out of [data-stateext-i18n] elements — applyLanguageToUI() would wipe it via textContent.
+    panel.querySelector('#stateExtBuildTag').textContent = `v${STATE_EXT_BUILD}`;
 
     globalThis.stateExt.toggleBtn = toggleBtn;
     globalThis.stateExt.panel = panel;
@@ -497,6 +505,14 @@ function stateExtResetSettings() {
         const listEl = document.getElementById('stateExtList');
         listEl.innerHTML = '';  // 清空列表
         stateList = getStateList();
+        // 空状态占位：让用户能区分“面板没打开”和“面板打开了但没有状态”。
+        // Empty-state placeholder: distinguishes "panel didn't open" from "open but empty".
+        if (!stateList.length) {
+            const li = document.createElement('li');
+            li.className = 'stateExt-empty';
+            li.textContent = stateExtT('emptyStates');
+            listEl.appendChild(li);
+        }
         stateList.forEach((item, idx) => {
             const li = document.createElement('li');
             li.innerHTML = `
